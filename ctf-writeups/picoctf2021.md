@@ -133,7 +133,7 @@ Awesome!!
 
 ### Some Assembly Required 1
 
-**Points: 7**0
+**Points:** 70
 
 #### **Solution**
 
@@ -162,7 +162,7 @@ There is and it also has the flag.
 
 **Description:** I forgot Cookies can Be modified Client-side, so now I decided to encrypt them!
 
-**Points: 7**0
+**Points:** 90
 
 #### **Solution**
 
