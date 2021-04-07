@@ -16,7 +16,7 @@ Here are the web challenges that I completed in PicoCTF 2021
 
 #### **Solution**
 
-The title of the challenge is interesting, the first instinct is that there is something hidden in the headers but lets look at Hints
+The title of the challenge is interesting, the first instinct is that there is something hidden in the headers but let's look at Hints
 
 {% hint style="info" %}
 **Hint 1:** Maybe you have more than 2 choices
