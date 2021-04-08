@@ -584,42 +584,9 @@ This is a tricky one because the filters pretty much block all mainstream operat
 
 Here's where we'll use a dirty trick. We can use an invalid expression that always returns true for everything: `column='' GLOB '*'` this statement isn't technically invalid but returns true. Let's understand it with a better example.
 
-Consider following table
+Consider this, the query `SELECT * FROM table WHERE name = "Jake" = False` is same as `SELECT * FROM table WHERE name != "Jake"` which means the second `=` actually returns True/False value of the first one. 
 
-| ID | Name |
-| :--- | :--- |
-| 1 | John |
-| 2 | Mike |
-| 3 | Jenna |
-
-When you query for `SELECT * FROM table WHERE Name = 'John'` you'll get back the first row as expected
-
-| ID | Name |
-| :--- | :--- |
-| 1 | John |
-
-This is what you see but it is only one part of the entire query \(Yes, there's something hidden\). For any query there are two parts:
-
-1. When the conditions are always True
-2. When the conditions are always False
-
-What does it mean? assume `queryX = SELECT * FROM table WHERE Name = 'John'` when this query is executed there are two objects returned one where `Name = 'John'` is true and the other where `Name = 'John'` is false \(This is similar to but not same as `Name != 'John'`\). But, We only see the object that is always true, Which is what we asked for in our query. However, we can actually access the second object where it is always false. by using query `queryX = False` this is like saying "Select where the query is false \(i. e Name is not John\). So the query can be rewritten as
-
-```sql
-SELECT * FROM table WHERE Name = 'John' = False
-```
-
-This will return rows where the Name is not John
-
-| ID | Name |
-| :--- | :--- |
-| 2 | Mike |
-| 3 | Jenna |
-
-We can use the anomaly in our injection. Our query will be 
-
-`password = ''GLOB'*'`  
-Since `'*'` is true for both `True` and `False` it will always return true
+The query `SELECT * FROM table WHERE name = "Jake"` has two objects one where the rows meet the condition \(True\) and the other where the rows do not meet the condition \(False\). So our query `password = '' GLOB '*'` basically translates to 'return True and False rows for `password=''` which is always True
 
 **Final Injection**
 
