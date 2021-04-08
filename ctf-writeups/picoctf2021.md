@@ -209,7 +209,70 @@ for i in range(128):
 
 **Flag:**  picoCTF{cO0ki3s\_yum\_82f39377}
 
+### Who are you?
 
+**Description:** Let me in. Let me iiiiiiinnnnnnnnnnnnnnnnnnnn
 
+**Points:** 100
 
+#### **Solution**
+
+**Stage 1:**
+
+![](../.gitbook/assets/image%20%281%29.png)
+
+This is the only thing I see on the website, Let's look at the hints
+
+{% hint style="info" %}
+**Hint 1:** It ain't much, but it's an RFC https://tools.ietf.org/html/rfc2616
+{% endhint %}
+
+So, I have to set special headers for this, After looking through [**Mozilla HTTP Header Docs**](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers) ****I found a header `User-Agent` which contains information regarding the browser, So I set it to **"picobrowser"**
+
+**Stage 2:**
+
+![](../.gitbook/assets/image%20%282%29.png)
+
+After changing the header related to the browser, This is what I see. After looking through headers that relate to information regarding the previous site. I found `Referer` I changed it to the same URL.
+
+`Referer: http://mercury.picoctf.net:39114/`
+
+**Stage 3:**
+
+![](../.gitbook/assets/image%20%283%29.png)
+
+After passing the previous stage, Now I see this. It is asking us to visit it from 2018. I know that there is a header for **"Date"**, so I changed it to a date back in 2018.
+
+`Date: Date: Fri, 1 Dec 2018` 
+
+**Stage 4:**
+
+![](../.gitbook/assets/image%20%285%29.png)
+
+This time I need to set a header for "Do Not Track" which is `DNT`  
+`DNT: 1`
+
+**Stage 5:**
+
+![](../.gitbook/assets/image%20%284%29.png)
+
+This time, We need to access this from Sweden, My first instinct was VPN but so far we only used Headers to reach here. So I looked for another header that may reveal about location, I found `X-Forwarded-For` I changed it to the first IP I found on googling "Sweden IP address"
+
+`X-Forwarded-For: 83.254.0.167`  
+
+**Stage 6:**
+
+![](../.gitbook/assets/image%20%286%29.png)
+
+This is an easy one, I need to change the `Accept-Language` header, I set it to `sv-en` 
+
+`Accept-Language: sv-en` 
+
+**Result:**
+
+![](../.gitbook/assets/image%20%287%29.png)
+
+Finally, we have our flag!
+
+**Flag:** picoCTF{http\_h34d3rs\_v3ry\_c0Ol\_much\_w0w\_20ace0e4}
 
