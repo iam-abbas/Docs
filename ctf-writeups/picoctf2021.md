@@ -276,3 +276,34 @@ Finally, we have our flag!
 
 **Flag:** picoCTF{http\_h34d3rs\_v3ry\_c0Ol\_much\_w0w\_20ace0e4}
 
+### Some Assembly Required 2
+
+**Points:** 110
+
+#### **Solution**
+
+Like the "Some Assembly Required 1" challenge this is also related to Web Assembly. I opened the imported WASM file in Chrome Developer Tools and here's what I found towards the end \(Place where I found the flag for 1st part\)
+
+```text
+    end $label0
+    local.get $var4
+    i32.load offset=12
+    local.set $var9
+    local.get $var4
+    i32.load offset=8
+    local.set $var10
+    local.get $var10
+    local.get $var9
+    i32.store8 offset=1072
+    return
+  )
+  (data (i32.const 1024) "xakgK\5cNsmn;j8j<9;<?=l?k88mm1n9i1j>:8k?l0u\00\00")
+)
+```
+
+> xakgK\5cNsmn;j8j&lt;9;&lt;?=l?k88mm1n9i1j&gt;:8k?l0u\00\00
+
+This looks like it's encrypted, To figure out the encryption, I used **this website**. It tries all standard XOR decryptions at once. Using `XOR({'option':'Hex','string':'8'},'Standard',false)` the encrypted text outputs: `picoCTF{ef3b0b413475d7c00ee9f1a9b620c7d8}T88T88` , Great!
+
+**Flag:** picoCTF{ef3b0b413475d7c00ee9f1a9b620c7d8}
+
