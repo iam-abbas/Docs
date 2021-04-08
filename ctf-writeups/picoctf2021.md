@@ -558,3 +558,84 @@ Let's change the cookie value of `session` to our generated token.
 
 **Flag:** picoCTF{pwn\_4ll\_th3\_cook1E5\_478da04c}
 
+### Web Gauntlet 2
+
+**Description:** This website looks familiar... Log in as admin Site: ... Filter: ...
+
+**Points:** 170
+
+#### **Solution**
+
+This challenge is apparently a continuation of the "Web Gauntlet" challenge. Here, we are provided with two URLs one for login and another is for filters. Login is the page you'll need to exploit and bypass the form and gain access. "Filters" shows the list of keywords that are not allowed in the injection. Let's have a look at filters:
+
+> Filters: or and true false union like = &gt; &lt; ; -- /\* \*/ admin
+
+We can not use the above keywords in our injection. As mentioned on the login page. The server uses SQLite for the database. Here our username should be "admin" but we cannot use it due to filters so we need to find a way to enter the `username=admin` without spelling it.
+
+**The query for username:**
+
+We can use the "[CONCAT Operator](https://www.sqlitetutorial.net/sqlite-string-functions/sqlite-concat/)" which is `||` using this operator we can concatenate strings, For example: `'Pico'||'CTF'` will give us `'PicoCTF'` 
+
+We can use this for "admin": `'a'||'dmin'`
+
+**The query for the password:**
+
+This is a tricky one because the filters pretty much block all mainstream operators like `=><` and we can't even comment out the rest of the query because `;/**/` are blocked too. But SQLite has several interesting operators apart from these that can be used for boolean expressions. One such operator is "GLOB" which is similar to the "LIKE" operator in MySQL. The query `password GLOB '*'` means that "a password with at least length one, which should return true, But in our case, we can't change the characters before query as in the query already has `password = '` we can not get rid of the `= '` 
+
+Here's where we'll use a dirty trick. We can use an invalid expression that always returns true for everything: `column='' GLOB '*'` this statement isn't technically invalid but returns true. Let's understand it with a better example.
+
+Consider following table
+
+| ID | Name |
+| :--- | :--- |
+| 1 | John |
+| 2 | Mike |
+| 3 | Jenna |
+
+When you query for `SELECT * FROM table WHERE Name = 'John'` you'll get back the first row as expected
+
+| ID | Name |
+| :--- | :--- |
+| 1 | John |
+
+This is what you see but it is only one part of the entire query \(Yes, there's something hidden\). For any query there are two parts:
+
+1. When the conditions are always True
+2. When the conditions are always False
+
+What does it mean? assume `queryX = SELECT * FROM table WHERE Name = 'John'` when this query is executed there are two objects returned one where `Name = 'John'` is true and the other where `Name = 'John'` is false \(This is similar to but not same as `Name != 'John'`\). But, We only see the object that is always true, Which is what we asked for in our query. However, we can actually access the second object where it is always false. by using query `queryX = False` this is like saying "Select where the query is false \(i. e Name is not John\). So the query can be rewritten as
+
+```sql
+SELECT * FROM table WHERE Name = 'John' = False
+```
+
+This will return rows where the Name is not John
+
+| ID | Name |
+| :--- | :--- |
+| 2 | Mike |
+| 3 | Jenna |
+
+We can use the anomaly in our injection. Our query will be 
+
+`password = ''GLOB'*'`  
+Since `'*'` is true for both `True` and `False` it will always return true
+
+**Final Injection**
+
+**Username:** `a'||'dmin`  
+**Password:** `'GLOB'*` ****
+
+  
+**Final Query**
+
+```sql
+SELECT username, password FROM users WHERE username='a'||'dmin' AND password=''GLOB'*'
+```
+
+The character limit is 25 but our password is just 7 characters long! Let's enter it into the login page
+
+![](../.gitbook/assets/image%20%2811%29.png)
+
+**Flag:** picoCTF{0n3\_m0r3\_t1m3\_fc0f841ee8e0d3e1f479f1a01a617ebb}
+
