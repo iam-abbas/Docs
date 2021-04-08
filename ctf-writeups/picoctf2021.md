@@ -328,7 +328,7 @@ User-agent: *
 Disallow: /admin.phps
 ```
 
-Notice "admin.**phps**". That is interesting, I tried same extension for index.phps and it revealed the source code. Here's the PHP code for index.php
+Notice "admin.**phps**". That is interesting, I tried the same extension for index.phps and it revealed the source code. Here's the PHP code for index.php
 
 ```php
 <?php
@@ -387,7 +387,7 @@ if(isset($perm) && $perm->is_admin()){
 ?>
 ```
 
-Here you can see that class `access_log` contains an interesting function called `__toString()` this is a well know exploit. If you are able to echo the class `access_log` with a file, you can read its contents. So we need to pass the `../flag` in to the `access_log()` and find a place where it's echo'd. Let's look at out last file `cookie.php`
+Here you can see that class `access_log` contains an interesting function called `__toString()` this is a well known exploit. If you are able to echo the class `access_log` with a file, you can read its contents. So we need to pass the `../flag` into the `access_log()` and find a place where it's echoed. Let's look at our last file `cookie.php`
 
 ```php
 if(isset($_COOKIE["login"])){
@@ -403,9 +403,9 @@ if(isset($_COOKIE["login"])){
 
 ```
 
- Here's what I found towards the end. It was what we wanted. `$perm` is unserializing the cookie and is echo'd \(`die("Deserialization error. ".$perm);`\) when the functions `is_guest()` and `is_admin()` are not found. So we need to pass `access_log("../flag")` to it. 
+ Here's what I found towards the end. It was what we wanted. `$perm` is unserializing the cookie and is echoed \(`die("Deserialization error. ".$perm);`\) when the functions `is_guest()` and `is_admin()` are not found. So we need to pass `access_log("../flag")` to it. 
 
-First let's serizalize and encode it in base64 so it gives expected output on `unserialize(base64_decode(urldecode()))` 
+First, let's serialize and encode it in base64 so it gives the expected output on `unserialize(base64_decode(urldecode()))` 
 
 Here's our exploit
 
@@ -461,7 +461,7 @@ There you go!
 
 #### **Solution**
 
-This is a similar problem to the first two "Cookie" problems. You'll need set the right cookie to get the flag. This time we are provided with a source code file. Let's have a look
+This is a similar problem to the first two "Cookie" problems. You'll need to set the right cookie to get the flag. This time we are provided with a source code file. Let's have a look
 
 ```python
 from flask import Flask, render_template, request, url_for, redirect, make_response, flash, session
@@ -525,9 +525,9 @@ if __name__ == "__main__":
 
 ```
 
-You can see the `flag()` function for display endpoit. It reads the `very_auth` cookie and checks if it is "admin" if yes, then it will show us the flag. Flask cookies use JWT to created a signed token we need to find the secret. From the above source code we can see from line 6 and 7 that the secret is a random word from `cookie_names` list. If we can figure out which one is it then we can create a signed token for `very_auth=admin` 
+You can see the `flag()` function for the display endpoint. It reads the `very_auth` cookie and checks if it is "admin" if yes, then it will show us the flag. Flask cookies use JWT to created a signed token we need to find the secret. From the above source code we can see from lines 6 and 7 that the secret is a random word from `cookie_names` list. If we can figure out which one is it then we can create a signed token for `very_auth=admin` 
 
-I found a python library called ****[**flask-unsign**](https://github.com/Paradoxis/Flask-Unsign) ****which has usefull tools to decrypt the cookie and also brute force for the secret. First let us decrypt the cookie `session` set by the server using
+I found a python library called ****[**flask-unsign**](https://github.com/Paradoxis/Flask-Unsign) ****which has useful tools to decrypt the cookie and also brute-force for the secret. First, let us decrypt the cookie `session` set by the server using
 
 ```python
 $ flask-unsign --decode --cookie eyJ2ZXJ5X2F1dGgiOiJibGFuayJ9.YG7ogw.sUaN7zHrEh4nQUr7qe7JfcFeynY
@@ -535,7 +535,7 @@ $ flask-unsign --decode --cookie eyJ2ZXJ5X2F1dGgiOiJibGFuayJ9.YG7ogw.sUaN7zHrEh4
 # {'very_auth': 'blank'}
 ```
 
-We can use this token to brute force for secret from the word list provided using a `flask-unsign` and a text file \(cookies.txt\) consisting for the words from the list `cookie_name` Then we can use the following command to  find the secret from the list.
+We can use this token to brute force for secret from the word list provided using a `flask-unsign` and a text file \(cookies.txt\) consisting of the words from the list `cookie_name` Then we can use the following command to find the secret from the list.
 
 ```python
 $ flask-unsign --unsign --cookie eyJ2ZXJ5X2F1dGgiOiJibGFuayJ9.YG7ogw.sUaN7zHrEh4nQUr7qe7JfcFeynY --wordlist cookies.txt
