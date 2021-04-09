@@ -628,7 +628,7 @@ It says "You're on the right path." I tried to change things a little bit and us
 
 ![](../.gitbook/assets/image%20%2817%29.png)
 
-Now it says "Login failure." This means that it's a Blind XPATH injection which means we have to figure out the username and password using queries. Here we can use **"starts-wth\(\)"** operator. Which returns true if the passed characters are at the beginninng of a document. We do not know the column names yet so we can use `//*` which basically means check for all documents \(columns\). I tried testing it with `' or //*[starts-with(text(),'a')] or 'a'='b` which interestingly enough returned true. I tried again with `' or //*[starts-with(text(),'ab')] or 'a'='b` which returned false. 
+Now it says "Login failure." This means that it's a Blind XPATH injection which means we have to figure out the username and password using queries. Here we can use **"starts-wth\(\)"** operator. Which returns true if the passed characters are at the beginning of a document. We do not know the column names yet so we can use `//*` which basically means check for all documents \(columns\). I tried testing it with `' or //*[starts-with(text(),'a')] or 'a'='b` which interestingly enough returned true. I tried again with `' or //*[starts-with(text(),'ab')] or 'a'='b` which returned false. 
 
 We can actually write a script that runs through all the combinations and stacks the successful characters upon success. Here's the Python script that I made
 
@@ -654,7 +654,9 @@ while True:
             break
 ```
 
-I tried running the above script several times before which returned with values like admin, bob, thisisnottheflag then I figured that we are supposed to look for the flag itself not some password. so I started with the standard starting format `picoCTF{` after running for a while, I finaly got the full flag.
+I tried running the above script several times before which returned with values like admin, bob, thisisnottheflag then I figured that we are supposed to look for the flag itself, not some password. so I started with the standard starting format `picoCTF{` after running for a while, I finally got the full flag.
+
+![](../.gitbook/assets/image%20%2820%29.png)
 
 **Flag:** picoCTF{h0p3fully\_u\_t0ok\_th3\_r1ght\_xp4th\_a56016ef}
 
