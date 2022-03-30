@@ -8,7 +8,7 @@ description: Write-ups for PicoCTF 2022 Challenges
 
 Here are the web challenges that I completed in PicoCTF 2022
 
-### Includes <a href="#getahead" id="getahead"></a>
+### Includes <a href="#includes" id="includes"></a>
 
 **Description:** Can you get the flag?
 
@@ -26,7 +26,7 @@ There were two files that were imported `style.css` and `script.js` and both has
 \
 **Flag:** picoCTF{1nclu51v17y\_1of2\_f7w\_2of2\_4d305f36}
 
-### Inspect HTML <a href="#getahead" id="getahead"></a>
+### Inspect HTML <a href="#inspect-html" id="inspect-html"></a>
 
 **Description:** Can you get the flag?
 
@@ -66,7 +66,7 @@ The source was&#x20;
 
 **Flag:** picoCTF{1n5p3t0r\_0f\_h7ml\_b6602e8e}
 
-### Local Authority <a href="#getahead" id="getahead"></a>
+### Local Authority <a href="#local-authority" id="local-authority"></a>
 
 **Description:** Can you get the flag?
 
@@ -102,7 +102,7 @@ function checkPassword(username, password)
 \
 **Flag:** picoCTF{j5\_15\_7r4n5p4r3n7\_8086bcb1}
 
-### Search source <a href="#getahead" id="getahead"></a>
+### Search source <a href="#search-source" id="search-source"></a>
 
 **Description:** The developer of this website mistakenly left an important artifact in the website source, can you find it?
 
@@ -120,7 +120,7 @@ You could probably download the source by "save as" and then use some searching 
 \
 **Flag:** picoCTF{1nsp3ti0n\_0f\_w3bpag3s\_869d23af}
 
-### Forbidden Paths <a href="#getahead" id="getahead"></a>
+### Forbidden Paths <a href="#forbidden-paths" id="forbidden-paths"></a>
 
 **Description:** We know that the website files live in /usr/share/nginx/html/ and the flag is at /flag.txt but the website is filtering absolute file paths. Can you get past the filter to read the flag?
 
@@ -134,7 +134,7 @@ Just input the path and you'll see the flag.\
 \
 **Flag:** picoCTF{7h3\_p47h\_70\_5ucc355\_e73ad00d}
 
-### Power Cookie <a href="#getahead" id="getahead"></a>
+### Power Cookie <a href="#power-cookie" id="power-cookie"></a>
 
 **Description:** Can you get the flag?
 
@@ -154,7 +154,7 @@ I changed the value to 1 and it showed me the flag. Simple!\
 \
 **Flag:** picoCTF{gr4d3\_A\_c00k13\_80bad8fa}
 
-### Roboto Sans <a href="#getahead" id="getahead"></a>
+### Roboto Sans <a href="#roboto-sans" id="roboto-sans"></a>
 
 **Description:** The flag is somewhere on this web application not necessarily on the website. Find it.
 
@@ -179,7 +179,7 @@ Looks like there is a base64 string there. After decoding `anMvbXlmaWxlLnR4dA==`
 
 **Flag:** picoCTF{Who\_D03sN7\_L1k5\_90B0T5\_6ac64608}
 
-### Secrets <a href="#getahead" id="getahead"></a>
+### Secrets <a href="#secrets" id="secrets"></a>
 
 **Description:** We have several pages hidden. Can you find the one with the flag?
 
@@ -195,7 +195,7 @@ I continued to `secret/hidden` and I found a new page. Inspected that. Found `su
 \
 **Flag:** picoCTF{succ3ss\_@h3n1c@10n\_f55d602d}
 
-### SQL Direct <a href="#getahead" id="getahead"></a>
+### SQL Direct <a href="#sql-direct" id="sql-direct"></a>
 
 **Description:** Connect to this PostgreSQL server and find the flag!
 
@@ -232,7 +232,7 @@ A simple `SELECT * FROM flags;` revealed the flag.
 
 **Flag:** picoCTF{L3arN\_S0m3\_5qL\_t0d4Y\_34fa2564}
 
-### SQLiLite <a href="#getahead" id="getahead"></a>
+### SQLiLite <a href="#sqlilite" id="sqlilite"></a>
 
 **Description:** Can you login to this website?
 
@@ -255,7 +255,7 @@ Successfully logged in. You can find the flg in source code.\
 
 **Flag:** picoCTF{L00k5\_l1k3\_y0u\_solv3d\_it\_cd1df56b}
 
-### noted <a href="#getahead" id="getahead"></a>
+### noted <a href="#noted" id="noted"></a>
 
 **Description:** I made a nice web app that lets you take notes. I'm pretty sure I've followed all the best practices so its definitely secure right?
 
